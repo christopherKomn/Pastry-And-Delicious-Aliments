@@ -1,0 +1,2 @@
+# Maven build output: compiled classes, test reports, coverage reports, and packaged artifacts
+/target/
