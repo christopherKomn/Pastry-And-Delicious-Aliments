@@ -1,0 +1,1158 @@
+   
+ 
+   
+ Software Requirements Specification  
+ 
+Online Food Order (Delivery)  
+Pastry And Delicious Aliments  
+ 
+Ομάδα 15 
+ Μπαρκάς Απόστολος  23390211  
+ Δαγρές Ανδρέας  23390032  
+ Λώλας Ιωάννης  22390127  
+ Χριστόφορος Κομνηνός  20390108  
+ Δημήτρης Σμυρνάκης  18390243  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+   
+ 
+   
+  
+Table of Contents  
+ 
+1.0. Introduction  
+1.1. Purpose  
+1.2. Overview of Document  
+1.3. Operating Enviro nment  
+2.0 Use Cases  
+2.1 Customer  
+2.2 Admin  
+2.3 Store Manager  
+3.0. Requirements Specification  
+3.1 Functional Requirements   
+3.1.1.0 Store Recommendation  
+3.1.1.1 Star rating  
+3.1.1.2 Comments  
+3.1.2.0 Browse Stores  
+3.1.2.1 Select Store  
+3.1.2.2 Add item(s) to cart  
+3.1.2.3 Check Validation  
+3.1.2.4 Order Confirmation  
+3.1.2.5 Customer Details  
+3.1.2.5.1 Discount  
+3.1.3.0 Update Order  
+3.1.3.1 Cancel  
+3.1.3.2 Update Information  
+3.1.4.0 Create Store Manager  
+3.1.4.1 Store Manager Confirmation  
+3.1.5.0 Show Reports  
+3.1.5.1 Select Report  
+3.1.6.0 Show Customer Profile  
+3.1.6.1 Select Profile  
+3.1.6.1.1 Show Customer Profile  
+3.1.6.1.2 Ban Customer  
+3.1.7.0 Show Store Managers  
+3.1.7.1 Select Profile  
+3.1.7.1.1 Ban  
+3.1.7.1.2 Update  
+3.1.7.1.3 Show  
+3.1.7.1.4 Remove  
+3.1.8.0 Update Store Page  
+3.1.8.1 Items  
+3.1.8.2 Store Status  
+3.1.8.3 item Price  
+3.1.8.1.1 Create  
+3.1.8.1.2 Toggle  
+3.1.8.1.3 Remove  
+3.1.8.1.1.1 Item Details  
+3.1.8.1.1.2 Items Availability  
+3.1.9.0 Remove Store Page  
+
+   
+ 
+   
+ 3.1.10.0 Validate Order  
+3.1.10.1 Validate Order [Reject]  
+3.1.10.2 Validate Order [Report]  
+3.1.10.3 Validate Order [Accept]  
+3.1.11.0 Update Order  
+3.1.11.1 Order [Update Information]  
+3.1.11.2 Update Order [Cancel]  
+3.2 Non -Functional Requirements   
+3.2.1 Performance Requirements  
+3.2.2 Safety Requirements  
+3.2.3 Security  
+3.2.4 Software Quality Attributes  
+3.2.5 Business Rules  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+   
+ 
+   
+  
+ 
+ 
+ 
+ 
+ 
+ 
+1.0 Introduction  
+ 
+ 
+1.1 Purpose  
+This document outlines the requirements for developing an online food ordering and delivery platform, 
+which allows users to browse the menus of partner establishments and place orders based on their 
+preferences.  
+ 
+1.2 Overview of Document  
+The document includes the general description of the system, the functional and non -functional 
+requirements, the data description, and the user documentation. Each section provides detailed 
+specifications for the implementation of the platform.  
+ 
+1.3 Operating  Enviro nment  
+ 
+ 
+
+
+   
+ 
+   
+ The P.A.D.A. (Pastry And Delicious Aliments) system has three active roles (actors) that connect to 
+the platform as regular users. The Customer, the Order Manager, and the Admin. The interaction of 
+all three roles with the central service (P.A.D.A. Service ) requires authentication (Log in / Log out) in 
+order to gain access to the corresponding management or shopping environment.  
+ 
+ 
+2.0 Use Cases  
+ 
+ 
+2.1 Customer  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+   
+ 
+   
+  
+ 
+ 
+ 
+ 
+2.2 Admin  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+   
+ 
+   
+  
+ 
+ 
+ 
+2.3 Store Manager  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+   
+ 
+   
+  
+ 
+3.0 Requirements Specification  
+ 
+ 
+3.1 Functional Requirements  
+ 
+Customer Use Cases  
+ 
+3.1.1.0 Store Recommendation  
+ 
+ Use Case Name  Store Recommendation  
+Actor  Customer  
+Trigger  Customer chooses to see recommended stores on the home 
+page  
+Precondition  Customer has opened the website  
+Basic Path  1. Customer navigates to the suggestions section  
+2. The Customer chooses the store according to his 
+preferences  
+Alternative Paths  1. The Customer can rate the stores  
+2. Customer can write comment/review about the store  
+Postcondition  The Customer sees the suggested stores on their screen  
+Exceptions Paths  Proposal Failure to Load  
+ 
+3.1.1.1 Star rating  
+ Use Case Name  Star rating  
+Actor  Customer  
+Trigger  Customer wants to rate a store  
+Precondition  The store has reviews  
+Basic Path  1. The Customer enters the rating system  
+2. Customer choose stars for rating  
+3. Confirms the evaluation  
+Alternative Paths  - 
+Postcondition  The score is successfully displayed on the screen  
+
+   
+ 
+   
+ Exceptions Paths  Failure to evaluate  
+ 
+ 
+ 
+ 
+3.1.1.2 Comments  
+ Use Case Name  Comments  
+Actor  Customer  
+Trigger  Customer wants to leave a review for a store  
+Precondition  The store has reviews  
+Basic Path  1. The Customer enters the rating system  
+2. The Customer writes their review  
+3. Confirms the evaluation  
+Alternative Paths  - 
+Postcondition  The comment is successfully displayed on the screen  
+Exceptions Paths  Failure to evaluate  
+ 
+3.1.2.0 Browse Stores  
+Use Case Name  Browse stores  
+Actor  Customer  
+Trigger  The Customer chooses to browse the available stores  
+Precondition  The Customer has logged in to the application  
+Basic Path  1. Customer navigates the app  
+2. The system displays the list of all available stores  
+Alternative Paths  Customer selects a specific store from the list  
+Postcondition  The list of stores is displayed  
+Exceptions Paths  Failed to load list of stores  
+ 
+3.1.2.1 Select Store  
+
+   
+ 
+   
+  Use Case Name  Select Store  
+Actor  Customer  
+Trigger  The Customer chooses the store of their choice  
+Precondition  The Customer is browsing the list of stores  
+Basic Path  1. The Customer chooses a store  
+2. The system displays the menu of the specific store  
+Alternative Paths  The Customer decides to add products to their cart  
+Postcondition  The store menu is displayed  
+Exceptions Paths  Failed to load store menu  
+ 
+3.1.2.2 Add item(s) to cart  
+ Use Case Name  Add item(s) to cart  
+Actor  Customer  
+Trigger  Customer chooses to buy a product  
+Precondition  The Customer has chosen the store for his purchases  
+Basic Path  1. The Customer chooses the product he wants  
+2. Choose quantity  
+3. Selects "add to cart"  
+4. The system updates the temporary shopping cart  
+Alternative Paths  The Customer proceeds to check the validity of the order  
+Postcondition  Product has been added to cart  
+Exceptions Paths  Failed to add product to cart  
+ 
+3.1.2.3 Check Validation  
+Use Case Name  Check Validation  
+Actor  Customer  
+Trigger  The Customer has completed their order  
+Precondition  The Customer has added products to his cart  
+
+   
+ 
+   
+ Basic Path  1. The Customer completes their order  
+2. The system checks the availability of products in the store  
+3. The system confirms that the data is valid  
+4. The system displays a relevant confirmation message  
+Alternative Paths  Finalizing an order  
+Postcondition  The order is in the process of being completed  
+Exceptions Paths  If a product is out of stock, the system displays a message and 
+removes the product from the cart  
+ 
+3.1.2.4 Order Confirmation  
+ Use Case Name  Order Confirmation  
+Actor  Customer  
+Trigger  Customer wants to complete the order  
+Precondition  Confirming details  
+Basic Path  1. The system displays the overall summary of the order  
+2. Customer confirms the order  
+3. The system saves the order in the database and sends a 
+notification to the store   
+Alternative Paths  - 
+Postcondition  A success message is displayed for the order  
+Exceptions Paths  No success message is displayed for the order  
+ 
+3.1.2.5 Customer Details  
+ Use Case Name  Customer Details  
+Actor  Customer  
+Trigger  Customer wants to view or edit their details  
+Precondition  Purchase confirmed  
+Basic Path  1. The system asks the Customer to fill in or confirm their 
+details  
+2. Customer enters/confirms the details  
+Alternative Paths  If the Customer has a discount code, they enter it  
+
+   
+ 
+   
+ Postcondition  A confirmation message is displayed  
+Exceptions Paths  Error in filling in data  
+ 
+ 
+3.1.2.5.1 Discount  
+ Use Case Name  Discount  
+Actor  Customer  
+Trigger  Customer chooses to use a discount  
+Precondition  Order ready  
+Basic Path  1. Customer enters the discount coupon code  
+2. The system checks the validity of the code  
+3. The discount on the final amount is applied  
+Alternative Paths  - 
+Postcondition  A discount has been applied to the final amount  
+Exceptions Paths  Incorrect or expired code  
+ 
+3.1.3.0 Update Order  
+ Use Case Name  Update order  
+Actor  Customer  
+Trigger  Customer chooses to modify an active order  
+Precondition  There is already a registered order that has not started to be 
+prepared  
+Basic Path  1. Customer selects their current order  
+2. The system displays the available change options  
+Alternative Paths  1. Cancel the order  
+2. Change of items or products  
+Postcondition  Complete Order Modification  
+Exceptions Paths  Failing changes and displaying a relevant message  
+ 
+3.1.3.1 Cancel  
+
+   
+ 
+   
+  Use Case Name  Cancel  
+Actor  Customer  
+Trigger  The Customer wants to cancel the order  
+Precondition  Processing a registered order  
+Basic Path  1. The Customer cancels the order  
+2. The system changes the status of the order and cancels it  
+Alternative Paths  - 
+Postcondition  The order is canceled and the products are released  
+Exceptions Paths  The order cannot be canceled  
+ 
+3.1.3.2 Update Information  
+ Use Case Name  Update Information  
+Actor  Customer  
+Trigger  Customer wants to change order details  
+Precondition  Edit a placed order  
+Basic Path  1. Customer modifies the order details  
+2. The system checks if the change is possible and saves the 
+new details  
+Alternative Paths  - 
+Postcondition  Order details have been changed  
+Exceptions Paths  Changes failed  
+ 
+ 
+Admin Use Cases  
+3.1.4.0 Create Store Manager  
+Use Case Name  Create Store Manager  
+Actor  Admin  
+Xref - 
+
+   
+ 
+   
+ Trigger  Admin selects the option to create a new Store Manager account.  
+Precondition  The Admin is authenticated and has access to the 
+StoreManager management module.  
+Basic Path  1. Admin selects the Create Store Manager option.  
+2. System displays the Store Manager creation form.  
+3.Admin enters the required Store Manager information.  
+4. Admin submits the form.  
+5. System validates the entered information.  
+6. System creates the Store Manager account.  
+7. System displays a success message and proceeds to Store 
+Manager confirmation.  
+ 
+Alternative Paths  1. If validation fails, the system highlights invalid or missing 
+fields.  
+2. Admin corrects the information and resubmits the  
+form.  
+Exceptions Paths  The Admin may cancel the creation process at any time.  
+ 
+3.1.4.1 Store Manager Confirmation  
+ Use Case Name  Store Manager Confirmation  
+Actor  Admin  
+Xref Use Case 4.0 — Create Store Manager  
+Trigger  The system successfully creates a Store Manager account  
+Precondition  A Store Manager account has been successfully created.  
+Basic Path  1. System displays the newly created Store Manager 
+information.  
+2. System displays a confirmation message indicating 
+successful account creation.  
+3. Admin reviews the displayed information.  
+4. Admin proceeds to store assignment or Store Details.  
+5. Admin Confirms and Saves the Store Details .  
+Alternative Paths  - 
+Exceptions Paths  If the Store Manager account cannot be confirmed, the system 
+displays an error message and returns the Admin to the Create 
+Store Manager form.  
+ 
+3.1.5.0 Show Reports  
+
+   
+ 
+   
+  Use Case Name  Show Reports  
+Actor  Admin  
+Xref - 
+Trigger  Admin accesses the Reports menu.  
+Precondition  The Admin navigates to the Reports menu and system displays 
+all available reports sorted alphabetically or by  
+creation date.  
+Basic Path  1. Admin opens the Reports menu.  
+2. System displays all available reports.  
+3. Admin may apply filters or search criteria to narrow the 
+displayed reports.  
+4. System refreshes and displays the filtered list of reports.  
+5. Admin may modify the filters, returning to Step 3.  
+Alternative Paths  - 
+Exceptions Paths  The Admin may cancel the creation process at any time.  
+ 
+3.1.5.1 Select Report  
+ Use Case Name  Select Report  
+Actor  Admin  
+Xref Use Case 5.0 — Show Reports  
+Trigger  Admin selects a report from the Reports list.  
+Precondition  The system displays all or a filtered section of reports.  
+Basic Path  1. Admin selects a report.  
+2. System displays the selected report summary.  
+3. Admin chooses to view the report details(Include Data 5.2 —
+Report Details).  
+Alternative Paths  - 
+Exceptions Paths  The Admin may cancel the process at any time, returning to the 
+Show Reports menu (Use Case 5.0 — Show Reports).  
+ 
+ 
+3.1.6.0 Show Customer Profile  
+
+   
+ 
+   
+  Use Case Name  Show Customer Profile  
+Actor  Admin  
+Xref - 
+Trigger  Admin accesses the Customer Profiles menu.  
+Precondition  The Admin navigates to the Customer Profiles menu and  
+system displays all customer profiles sorted alphabeticaly  
+Basic Path  1. Admin opens the Customer Profiles menu.  
+2. System displays all customer profiles sorted alphabetically.  
+3. Admin may apply one or more filters to narrow the displayed 
+results.  
+4. System refreshes and displays the filtered list of customer 
+profiles.  
+5. Admin may modify the filters, returning to Step 3.  
+Alternative Paths  - 
+Exceptions Paths  The Admin may abandon the search process at any time.  
+ 
+3.1.6.1 Select Profile  
+ Use Case Name  Select Profile  
+Actor  Admin  
+Xref Use Case 6.0 — Show Customer Profiles  
+Trigger  Admin accesses the Customer Profiles menu.  
+Precondition  The system displays all or a filtered section of customer  
+profiles.  
+Basic Path  1. Admin selects a customer profile.  
+2. System displays the available actions for the selected 
+customer profile.  
+3. Available actions include Show and Ban.  
+Alternative Paths  - 
+Exceptions Paths  The Admin may cancel the process at any time, returning to the 
+Show Customer Profiles menu (Use Case 6.0 — Show Customer 
+Profiles).  
+ 
+3.1.6.1.1 Show Customer Profile  
+
+   
+ 
+   
+  Use Case Name  Show Customer Profile  
+Actor  Admin  
+Xref Use Case 6.1 — Select Profile  
+Trigger  Admin selects the Show option for a customer profile.  
+Precondition  A customer profile has been selected.  
+Basic Path  1. Admin selects the Show option.  
+2. System displays the complete customer profile information.  
+3.Admin reviews the displayed information.  
+Alternative Paths  - 
+Exceptions Paths  The Admin may exit the details view at any time, returning to the 
+Select Profile menu (Use Case 6.1 — Select Profile).  
+ 
+3.1.6.1.2 Ban Customer  
+Use Case Name  Ban Customer  
+Actor  Admin  
+Xref Use Case 6.1 — Select Profile  
+Trigger  Admin selects the Ban option for a customer profile.  
+Precondition  A customer profile has been selected.  
+Basic Path  1.System requests ban details.  
+2. Admin gives a description, ban duration and ban type.  
+3. System displays a confirmation request.  
+4. Admin confirms the ban.  
+5. System applies the ban and displays a success  
+message.  
+Alternative Paths  1. Admin may select a temporary or permanent ban duration.  
+2. Admin may revoke an existing ban by following the  
+same process and selecting a duration value of 0.  
+Exceptions Paths  The Admin may cancel the process at any time, returning to the 
+Select Profile menu (Use Case 6.1 - Select Profile).  
+ 
+ 
+ 
+3.1.7.0 Show Store Managers  
+
+   
+ 
+   
+  Use Case Name  Show Store Managers  
+Actor  Admin  
+Xref - 
+Trigger  Admin accesses Store Manager Menu  
+Precondition  The Admin navigates to the Store Manager menu and the  
+system displays all Store Managers sorted alphabetically.  
+Basic Path  1. Admin opens the Store Manager Menu by default it shows all 
+Store Managers Sorted alphabetically.  
+2. (Optional) Admin may apply one or more filters to narrow the 
+displayed results.  
+3. (Required by step 2) System refreshes and displays the 
+filtered list of Store Managers.  
+4. (Optional) Admin may modify the filters, returning  
+to Step 3.  
+Alternative Paths  - 
+Exceptions Paths  The Admin may abandon the search process at any time.  
+ 
+3.1.7.1 Select Profile  
+ Use Case Name  Select Profile  
+Actor  Admin  
+Xref Use Case 7.0 — Show Store Managers  
+Trigger  Admin selects a Store Manager from the Store Managers list.  
+Precondition  The system displays all or a filtered section of Store  
+Managers.  
+Basic Path  1. Admin selects a Store Manager profile.  
+2. System displays the available actions for the selected Store 
+Manager.  
+3. Available actions include Ban, Update, Show, and  
+Remove.  
+Alternative Paths  - 
+Exceptions Paths  The Admin may cancel the process at any time, returning to the 
+Show Store Managers menu (Use Case 7.0 — Show Store 
+Managers).  
+ 
+
+   
+ 
+   
+  
+ 
+ 
+3.1.7.1.1 Ban  
+ Use Case Name  Ban 
+Actor  Admin  
+Xref Use Case 7.1 — Select Profile  
+Trigger  Admin selects the Ban option for a Store Manager profile  
+Precondition  A Store Manager profile has been selected.  
+Basic Path  1. System requests ban details.  
+2. Admin gives a description, ban duration and ban type.  
+3. System displays a confirmation request.  
+4. Admin confirms the ban.  
+5. System applies the ban and displays a success message.  
+Alternative Paths  1. Admin may select a temporary or permanent ban duration.  
+2. Admin may revoke an existing ban by following the  
+same process and selecting a duration value of 0.  
+Exceptions Paths  The Admin may cancel the process at any time, returning to the 
+Select Profile menu (Use Case 7.1 - Select Profile).  
+ 
+3.1.7.1.2 Update  
+ Use Case Name  Update  
+Actor  Admin  
+Xref Use Case 7.1 — Select Profile  
+Trigger  Admin selects the Update option for a Store Manager profile.  
+Precondition  A Store Manager profile has been selected.  
+Basic Path  1. System displays the selected Store Manager’s current 
+information.  
+2. Admin modifies one or more profile fields.  
+3. System validates the entered information.  
+4. System displays a confirmation request  
+5. Admin confirms the update.  
+6. System saves the updated Store Manager  
+information and displays a success message.  
+
+   
+ 
+   
+ Alternative Paths  1. If validation fails, the system highlights invalid or missing 
+fields.  
+2. Admin corrects the information and resubmits the  
+update.  
+Exceptions Paths  The Admin may cancel the update process at any time, returning 
+to the Select Profile menu (Use Case 7.1 - Select Profile).  
+ 
+3.1.7.1.3 Show  
+ Use Case Name  Show  
+Actor  Admin  
+Xref Use Case 7.1 — Select Profile  
+Trigger  Admin selects the Show option for a Store Manager profile.  
+Precondition  A Store Manager profile has been selected.  
+Basic Path  1. Admin selects the Show option.  
+2. System displays the complete Store Manager profile 
+information.  
+3. Admin reviews the displayed information.  
+Alternative Paths  - 
+Exceptions Paths  The Admin may exit the details view at any time, returnig to the 
+Select Profile menu (Use Case 7.1 - Select Profile)  
+ 
+3.1.7.1.4 Remove  
+ Use Case Name  Remove  
+Actor  Admin  
+Xref Use Case 7.1 — Select Profile  
+Trigger  Admin selects the Remove option for a Store Manager  
+profile.  
+Precondition  A Store Manager profile has been selected.  
+Basic Path  1. System displays a confirmation request for the removal 
+action.  
+2. Admin confirms the removal request.  
+3. System removes the selected Store Manager profile.  
+4. System displays a success message and refreshes the 5. 
+Store Managers list  
+
+   
+ 
+   
+ Alternative Paths  - 
+Exceptions Paths  The Admin may cancel the process at any time, returning to the 
+Select Profile menu (Use Case 7.1 - Select Profile).  
+ 
+ 
+ 
+ 
+ 
+ 
+Store Manager Use Cases  
+ 
+3.1.8.0 Update Store Page  
+Use Case Name  Update store page  
+Actor  Store Manager  
+Trigger  The Store Manager decides to update the data, status or items 
+of the store page.  
+Precondition  1. The Store Manager has successfully logged in to the system.  
+2. The store already exists in the system.  
+Basic Path  1. Store Manager selects the "Update store page" action.  
+2. The system displays the current store page information.  
+3. The Store Manager chooses what he wants to update: items, 
+store status, item price.  
+4. The Store Manager makes the changes.  
+5. The system checks the validity of the data after the change.  
+7. The system saves the changes and updates the database  
+8. A successful update message is displayed.  
+Alternative Paths  - 
+Postcondition  1. Changes to the store page, products, prices or status are 
+permanently stored in the system.  
+2. The store page is updated immediately and is visible to 
+customers with the new information.  
+Exceptions Paths  1. Data Validation Failure: If some item elements are incorrect or 
+empty the system displays an error message and the changes 
+are not saved.  
+2. If the Store Manager does not have permissions, i.e. 
+unsuccessful login, a relevant message appears, e.g. "Access 
+Denied".  
+
+   
+ 
+   
+  
+3.1.8.1 Items  
+ Use Case Name  Items (Product Management)  
+Actor  Store Manager  
+Trigger  The Store Manager selects the product section.  
+Precondition  1. Store Manager is connected to the system.  
+2. Store Manager is located in the store management 
+environment.  
+Basic Path  1. The Store Manager selects the Items menu.  
+2. The system retrieves from the database and displays the list 
+of all registered products in the store.  
+3. For each product, basic information (Name, price, availability) 
+is displayed.  
+4. Store Manager checks the information.  
+5. The system displays the available options.  
+6. The Store Manager chooses whether to make a change.  
+7. The system updates the items list.  
+8. A relevant message appears.  
+Alternative Paths  - 
+Postcondition  The store's product catalog is updated in the database (new 
+additions, availability changes, or deletions).  
+Exceptions Paths  1. If some fields are empty or invalid, the system displays an error 
+message and the item is not saved during create.  
+2. If saving a change to the database fails then the system 
+displays a message and the changes are not completed.  
+ 
+3.1.8.2 Store Status  
+ Use Case Name  Store Status  
+Actor  Store Manager  
+Trigger  The Store Manager wants to change the status of the store  
+Precondition  1. Store Manager is logged in.  
+2. The store exists in the system.  
+Basic Path  1. The Store Manager opens the store page.  
+2. Select Store Status.  
+3. The system displays the current status.  
+4. The Store Manager selects a new status, i.e. closed or open.  
+5. The system saves the change.  
+6. A relevant message appears.  
+
+   
+ 
+   
+ Alternative Paths  In step 4, the Store Manager temporarily sets the store as 
+unavailable, i.e. that it temporarily does not accept orders.  
+Postcondition  Store status has been updated.  
+Exceptions Paths  If the system does not save the change, an error message is 
+displayed and the status remains the same.  
+ 
+3.1.8.3 item Price  
+ Use Case Name  Item Price  
+Actor  Store Manager  
+Trigger  The Store Manager chooses to change the price of an item.  
+Precondition  1. Store Manager is logged in.  
+2. The item exists in the system.  
+Basic Path  1. The Store Manager opens the items list.  
+2. Selects an item.  
+3. Selects the value field and enters the new value.  
+4. The system saves the change and updates the database.  
+5. A relevant message appears.  
+Alternative Paths  Store Manager enters a discounted price for a quote.  
+Postcondition  The price of the item has been updated and customers see the 
+new price.  
+Exceptions Paths  If the value is negative or empty, an error message is displayed 
+and the change does not occur.  
+ 
+3.1.8.1.1 Create  
+ 
+ Use Case Name  Create  
+Actor  Store Manager  
+Trigger  The Store Manager wants to add a brand new product to the 
+store's catalog.  
+Precondition  The Store Manager is already at the point of product 
+management (8.1 Items).  
+Basic Path  1. Store Manager selects Create Item  
+2. Store Manager fills in: Name, price, availability.  
+3. Presses save.  
+4. The system stores the item.  
+5. A relevant message appears.  
+
+   
+ 
+   
+ Alternative Paths  In step 3, the Store Manager finally clicks cancel and the item is 
+not created.  
+Postcondition  The new item has been added to the items list.  
+Exceptions Paths  If items are missing, an error message is displayed and the item 
+is not saved.  
+ 
+3.1.8.1.2 Toggle  
+ Use Case Name  Toggle (Change Product Status)  
+Actor  Store Manager  
+Trigger  The manager wants to hide or show a product.  
+Precondition  1. The item exists in the system.  
+2. The Store Manager is already at the point of product 
+management (8.1 Items).  
+Basic Path  1. The Store Manager selects an item.  
+2. Selects Toggle Availability.  
+3. The system changes the state and saves the change.  
+4. A relevant message appears.  
+Alternative Paths  In step 1, the Store Manager changes availability to more than 
+one item.  
+Postcondition  The availability of the item has been updated.  
+Exceptions Paths  If there is a storage problem, an error message is displayed  
+ 
+3.1.8.1.3 Remove  
+ 
+ Use Case Name  Remove  
+Actor  Store Manager  
+Trigger  The Store Manager chooses to remove a product.  
+Precondition  1. The item exists in the system.  
+2. The Store Manager is already at the point of product 
+management (8.1 Items).  
+Basic Path  1. Store Manager selects item.  
+2. Select Remove item.  
+3. The system asks for confirmation.  
+4. Store Manager confirms.  
+5. The system deletes the item.  
+6. A relevant message appears.  
+
+   
+ 
+   
+ Alternative Paths  Store Manager cancels the deletion and the item remains in the 
+list. 
+Postcondition  The item has been removed from the list.  
+Exceptions Paths  If there is a deletion problem, an error message is displayed.  
+ 
+3.1.8.1.1.1 Item Details  
+ Use Case Name  Item Details  
+Actor  Store Manager  
+Trigger  Store Manager imports or edits item items.  
+Precondition  The manager has opened the Create form.  
+Basic Path  1. Store Manager opens the item form.  
+2. Fills in: Name, price, availability.  
+3. Presses save.  
+4. The system stores the data.  
+5. A relevant message appears.  
+Alternative Paths  - 
+Postcondition  The items of the item have been saved.  
+Exceptions Paths  If items are missing, an error message is displayed.  
+ 
+3.1.8.1.1.2 Items Availability  
+ Use Case Name  Items Availability  
+Actor  Store Manager  
+Trigger  The Store Manager toggles an item to change its status.  
+Precondition  The item exists or is created.  
+Basic Path  1. Store Manager opens the item form.  
+2. Select availability.  
+3. Presses save.  
+4. The system saves the status.  
+5. A relevant message appears.  
+Alternative Paths  - 
+Postcondition  The item's availability status has been updated.  
+
+   
+ 
+   
+ Exceptions Paths  If there is a storage problem, an error message is displayed  
+ 
+ 
+ 
+3.1.9.0 Remove Store Page  
+Use Case Name  Remove Store Page  
+Actor  Store Manager  
+Trigger  Store Manager chooses to remove the store page.  
+Precondition  1. Store Manager is logged in.  
+2. The store page exists.  
+Basic Path  1. Store Manager opens the store page.  
+2. Select Remove Store Page.  
+3. The system asks for confirmation.  
+4. Store Manager confirms.  
+5. The system deletes the store page.  
+6. A relevant message appears.  
+Alternative Paths  Store Manager cancels the deletion.  
+Postcondition  The store page has been removed from the system.  
+Exceptions Paths  If there is a deletion problem, an error message is displayed.  
+ 
+3.1.10.0 Validate Order  
+Use Case Name  Validate Order  
+Actor  Store Manager  
+Trigger  The customer submitted an order with the instructions field filled 
+out, and the system flagged it.  
+Precondition  - 
+Basic Path  1. The system sends the flagged order to the Store 
+Manager.  
+2. The order appears as an option in the Store Manager 
+Panel.  
+3. The Store Manager clicks on the order box.  
+4. The system displays the order details.  
+5. The Store Manager reviews whether it is valid or not.  
+6. The Store Manager rejects it.  
+7. The Store Manager reports it.  
+8. The Store Manager accepts it.  
+Alternative Paths  1. The system sends the flagged order to the Store Manager.  
+
+   
+ 
+   
+ 2. The order appears as an option in the Store Manager Panel.  
+3. The Store Manager has the automated review feature 
+enabled.  
+4. The automated system rejects it.  
+5. The automated system reports it.  
+6.  The automated system accepts it  
+Postcondition  The order has been Accepted / Rejected / Reported to the 
+website.  
+Exceptions Paths  The system cancels the order after 1 minute if no Store Manager 
+is available.  
+ 
+3.1.10.1  Validate Order [Reject]  
+Use Case Name  Validate Order [Reject]  
+Actor  Store Manager  
+Trigger  The Store Manager clicked "Reject”  
+Precondition  An order is selected.  
+Basic Path  1. The system does not send the order to the store.  
+2. The system displays on the customer's screen that their order 
+was not accepted.  
+3. The order is removed from the Store Manager Menu.  
+4. A message appears on the customer's screen regarding the 
+cancellation of their order.  
+5. A message appears on the Store Manager Panel confirming 
+that the cancellation was successful.  
+Alternative Paths  1. The system does not send the order to the store.  
+2. The system displays on the customer's screen that their order 
+was not accepted.  
+3. The system refunds the money to the customer who paid by 
+card.  
+4. The order is removed from the Store Manager Menu.  
+5. A message appears on the customer's screen regarding the 
+cancellation of their order.  
+6. A message appears on the Store Manager Panel confirming 
+that the cancellation was successful.  
+Postcondition  The order does not proceed to the store, and the customer has 
+received their refund.  
+Exceptions Paths  The Store Manager might not click the "Reject" button.  
+ 
+3.1.10.2  Validate Order [Report]  
+Use Case Name  Validate Order [Report]  
+
+   
+ 
+   
+ Actor  Store Manager  
+Trigger  The Store Manager clicked "Report".  
+Precondition  An order is selected.  
+Basic Path  1. The system does not send the order to the store.  
+2. The system displays on the customer's screen that their order 
+has been reported to the Admins.  
+3. The order is removed from the Store Manager Menu.  
+4. A message appears on the customer's screen stating that 
+their order has been reported to the Admins.  
+5. A message appears on the Store Manager Panel confirming 
+that the report was successful.  
+Alternative Paths  1. The system does not send the order to the store.  
+2. The system displays on the customer's screen that their order 
+has been reported to the Admins.  
+3. The system refunds the money to the customer who paid by 
+card.  
+4. The order is removed from the Store Manager Menu.  
+5. A message appears on the customer's screen stating that 
+their order has been reported to the Admins.  
+6. A message appears on the Store Manager Panel confirming 
+that the report was successful.  
+Postcondition  The order does not proceed to the store, the customer has 
+received their refund, and an Admin must review the reported 
+order and account.  
+Exceptions Paths  The Store Manager might not click the "Report" button.  
+ 
+3.1.10.3 Validate Order [Accept]  
+Use Case Name  Validate Order [Accept]  
+Actor  Store Manager  
+Trigger  The Store Manager clicked "Accept".  
+Precondition  An order is selected.  
+Basic Path  1. The system sends the order to the store.  
+2. The system displays the estimated pickup/delivery time.  
+3. The order is removed from the Store Manager Menu.  
+4. A message appears on the customer's screen regarding the 
+acceptance of the order.  
+5. A message appears on the Store Manager Panel confirming 
+that the acceptance was successful.  
+Alternative Paths  - 
+
+   
+ 
+   
+ Postcondition  The order does not proceed to the store, the customer has 
+received their refund, and an Admin must review the reported 
+order and account.  
+Exceptions Paths  The Store Manager might not click the "Accept" button.  
+ 
+3.1.11.0 Update Order  
+Use Case Name  Update Order  
+Actor  Store Manager  
+Trigger  The customer submitted an order modification request.  
+Precondition  The referenced order exists.  
+Basic Path  1. The system sends the request to the Store Manager and 
+displays it in the Store Manager Menu.  
+2. The Store Manager reviews the modifications.  
+3. The Store Manager performs "Update Information".  
+4. The Store Manager performs "Cancel".  
+Alternative Paths  1. The Store Manager enables the automated review feature.  
+2. The automated system performs "Update Information".  
+3. The automated system performs "Cancel".  
+Postcondition  The order has either been updated or cancelled.  
+Exceptions Paths  The order is updated or cancelled automatically without review if 
+no Store Manager is available for 2 minutes.  
+  
+3.1.11.1 Order [Update Information]  
+Use Case Name  Order [Update Information]  
+Actor  Store Manager  
+Trigger  The customer submitted an order modification request.  
+Precondition  The referenced order exists.  
+Basic Path  1. Modification of the order data based on the provided 
+information.  
+2. Notification to the store regarding the order modification.  
+3. Display on the customer's screen confirming the successful 
+update of the order.  
+ 
+Alternative Paths  - 
+Postcondition  The order has been updated.  
+
+   
+ 
+   
+ Exceptions Paths  The Store Manager might not click the "Update Information" 
+button.  
+ 
+3.1.11.2 Update Order [Cancel]  
+Use Case Name  Update Order [Cancel]  
+Actor  Store Manager  
+Trigger  The customer submitted an order modification request.  
+Precondition  The referenced order exists.  
+Basic Path  1. The system notifies the store that the order has been 
+cancelled.  
+2. The system notifies the customer that the cancellation was 
+successful.  
+3. A message appears on the Store Manager Panel confirming 
+that the cancellation was successful.  
+Alternative Paths  1. The system notifies the store that the order has been 
+cancelled.  
+2. The system notifies the customer that the cancellation was 
+successful.  
+3. The system refunds the money to the customer who paid by 
+card.  
+4. A message appears on the Store Manager Panel confirming 
+that the cancellation was successful.  
+Postcondition  The order has been successfully cancelled, and the customer's 
+money has been refunded if they paid by card.  
+Exceptions Paths  The Store Manager might not click the "Cancel" button.  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+3.2 Non -Functional Requirements  
+ 
+3.2.1 Performance Requirements  
+
+   
+ 
+   
+ The performance should be as fast and as responsive to the user’s needs as possible. This means 
+that delays should be non -existent, excluding 2 very specific scenarios: Sending an order with the 
+instructions field filled and updating an order after it was submitted.  
+3.2.2 Safety Requirements  
+Regarding user data safety, ALL data will be backed up into a different database completely 
+disconnected from the main one. Both of the databases will contain encrypted user data to protect 
+user’s privacy.  
+Regarding store safety, ALL stores will have at least 1 store manager to help moderate orders with 
+instruction and all store manager will be able to directly communicate with admins.  
+ 
+3.2.3 Security 
+As stated above in the Safety Requirements, ALL user data will be encrypted and stored in 2 
+databases (1 normal and 1 back up).  
+Account data will be protected by a simple email and password log in with the ability to have 2FA if 
+the user wants it.  
+ 
+3.2.4 Software Quality Attributes  
+The website should be online almost 99% of the time, with that 1% being for maintenace.  
+The website will be as lightweight as the user desires, having features that are resource intensive, like 
+animations, be turned off, either automatically when the site detects a user with a lower end device, or 
+manually by the user themselves.  
+ 
+3.2.5 Business Rules  
+NEVER sell user data.  
+User satisfaction is far more important.  
+User data MUST be protected at all costs  
+User privacy is TOP priority  
+ 
+ 
+ 
+ 
+ 
