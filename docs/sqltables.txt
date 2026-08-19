@@ -2,14 +2,31 @@ CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(20) UNIQUE NOT NULL,
-    full_name VARCHAR(100) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    user_type ENUM('customer', 'restaurant_owner', 'driver', 'admin') NOT NULL,
+    username VARCHAR(100) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    user_type ENUM('customer', 'restaurant_owner', 'admin') NOT NULL,
     profile_image_url VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_user_type (user_type),
     INDEX idx_email (email)
 );
+
+CREATE TABLE customer (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL UNIQUE,
+    fullname VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(50),
+    postal_code VARCHAR(20),
+    address_line1 VARCHAR(255) NOT NULL,
+    address_line2 VARCHAR(255),
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+
 
 
 CREATE TABLE restaurants (
@@ -22,12 +39,16 @@ CREATE TABLE restaurants (
     cuisine_type VARCHAR(100), 
     phone VARCHAR(20),
     email VARCHAR(255),
+    address_line1 VARCHAR(255) NOT NULL,
+    address_line2 VARCHAR(255),
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(50),
+    postal_code VARCHAR(20),
     website VARCHAR(255),
     is_active BOOLEAN DEFAULT TRUE,
     is_accepting_orders BOOLEAN DEFAULT TRUE,
     min_order_amount DECIMAL(10,2) DEFAULT 0.00,
     delivery_fee DECIMAL(10,2) DEFAULT 0.00,
-    estimated_delivery_time INT,
     rating DECIMAL(3,2) DEFAULT 0.00,
     total_reviews INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -39,35 +60,15 @@ CREATE TABLE restaurants (
 );
 
 
-CREATE TABLE restaurant_addresses (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    restaurant_id INT NOT NULL,
-    address_line1 VARCHAR(255) NOT NULL,
-    address_line2 VARCHAR(255),
-    city VARCHAR(100) NOT NULL,
-    state VARCHAR(50),
-    postal_code VARCHAR(20),
-    latitude DECIMAL(10, 8) NOT NULL,
-    longitude DECIMAL(11, 8) NOT NULL,
-    is_primary BOOLEAN DEFAULT FALSE,
-    phone VARCHAR(20),
-    opening_hours JSON,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE,
-    INDEX idx_location (latitude, longitude)
-);
-
-
 
 CREATE TABLE menu_categories (
     id INT PRIMARY KEY AUTO_INCREMENT,
     restaurant_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    display_order INT DEFAULT 0,
     is_active BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE,
-    INDEX idx_restaurant (restaurant_id),
-    INDEX idx_order (display_order)
+    INDEX idx_restaurant (restaurant_id)
 );
 
 
@@ -77,20 +78,20 @@ CREATE TABLE menu_items (
     restaurant_id INT NOT NULL,
     category_id INT,
     name VARCHAR(255) NOT NULL,
+    quantity INT NOT NULL ,
     description TEXT,
     price DECIMAL(10,2) NOT NULL,
     discounted_price DECIMAL(10,2),
     preparation_time INT,
     is_available BOOLEAN DEFAULT TRUE,
-    is_vegetarian BOOLEAN DEFAULT FALSE,
-    is_vegan BOOLEAN DEFAULT FALSE,
-    is_gluten_free BOOLEAN DEFAULT FALSE,
     image_url VARCHAR(500),
     display_order INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES menu_categories(id) ON DELETE SET NULL,
+
     INDEX idx_restaurant_category (restaurant_id, category_id),
     INDEX idx_available (is_available),
     INDEX idx_price (price)
@@ -98,100 +99,58 @@ CREATE TABLE menu_items (
 
 
 
-CREATE TABLE menu_item_options (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    menu_item_id INT NOT NULL,
-    option_group VARCHAR(100) NOT NULL,
-    option_name VARCHAR(100) NOT NULL,
-    price_adjustment DECIMAL(10,2) DEFAULT 0.00,
-    is_default BOOLEAN DEFAULT FALSE,
-    max_selectable INT DEFAULT 1,
-    FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE,
-    INDEX idx_menu_item (menu_item_id)
-);
-
-
-CREATE TABLE drivers (
-    user_id INT PRIMARY KEY,
-    vehicle_type ENUM('car', 'motorcycle', 'bicycle', 'scooter') NOT NULL,
-    vehicle_plate VARCHAR(20),
-    license_number VARCHAR(50),
-    is_available BOOLEAN DEFAULT TRUE,
-    is_approved BOOLEAN DEFAULT FALSE,
-    current_latitude DECIMAL(10, 8),
-    current_longitude DECIMAL(11, 8),
-    last_location_update TIMESTAMP NULL,
-    rating DECIMAL(3,2) DEFAULT 5.00,
-    total_deliveries INT DEFAULT 0,
-    total_earnings DECIMAL(10,2) DEFAULT 0.00,
-    bank_account_info JSON,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_availability (is_available, is_approved),
-    INDEX idx_location (current_latitude, current_longitude)
-);
-
 
 
 CREATE TABLE orders (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    order_number VARCHAR(50) UNIQUE NOT NULL,
     customer_id INT NOT NULL,
     restaurant_id INT NOT NULL,
-    driver_id INT NULL,
-    address_id INT NOT NULL,
-    
-    
+
     status ENUM(
-        'pending',          
-        'confirmed',        
-        'preparing',        
-        'ready_for_pickup', 
-        'picked_up',        
-        'on_the_way',       
-        'delivered',        
-        'cancelled_by_customer',
-        'cancelled_by_restaurant',
-        'cancelled_by_driver',
-        'refunded'
+        'pending',
+        'confirmed',
+        'preparing',
+        'ready_for_pickup',
+        'on_the_way',
+        'delivered',
+        'cancelled'
     ) DEFAULT 'pending',
-    
+
     subtotal DECIMAL(10,2) NOT NULL,
-    delivery_fee DECIMAL(10,2) NOT NULL,
-    service_fee DECIMAL(10,2) DEFAULT 0.00,
-    tax DECIMAL(10,2) DEFAULT 0.00,
-    tip_amount DECIMAL(10,2) DEFAULT 0.00,
     discount_amount DECIMAL(10,2) DEFAULT 0.00,
     total_amount DECIMAL(10,2) NOT NULL,
-    
-    payment_method ENUM('credit_card', 'debit_card', 'cash', 'wallet', 'paypal') NOT NULL,
-    payment_status ENUM('pending', 'paid', 'failed', 'refunded') DEFAULT 'pending',
+
+    payment_method ENUM(
+        'credit_card',
+        'debit_card',
+        'cash',
+        'wallet',
+        'paypal'
+    ) NOT NULL,
+
     payment_intent_id VARCHAR(255),
-    
     special_instructions TEXT,
-    estimated_delivery_time TIMESTAMP NULL,
     actual_delivery_time TIMESTAMP NULL,
-    
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     confirmed_at TIMESTAMP NULL,
     prepared_at TIMESTAMP NULL,
     picked_up_at TIMESTAMP NULL,
     delivered_at TIMESTAMP NULL,
-    cancelled_at TIMESTAMP NULL,
-    
-    FOREIGN KEY (customer_id) REFERENCES customers(user_id),
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id),
-    FOREIGN KEY (driver_id) REFERENCES drivers(user_id),
-    FOREIGN KEY (address_id) REFERENCES addresses(id),
-    
+
+    FOREIGN KEY (customer_id)
+        REFERENCES customer(id),
+
+    FOREIGN KEY (restaurant_id)
+        REFERENCES restaurants(id)
+    ON DELETE CASCADE,
+
     INDEX idx_customer (customer_id),
     INDEX idx_restaurant (restaurant_id),
-    INDEX idx_driver (driver_id),
     INDEX idx_status (status),
-    INDEX idx_created (created_at),
-    INDEX idx_order_number (order_number)
+    INDEX idx_created (created_at)
 );
-
 
 CREATE TABLE order_items (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -202,58 +161,26 @@ CREATE TABLE order_items (
     unit_price DECIMAL(10,2) NOT NULL,
     total_price DECIMAL(10,2) NOT NULL,
     special_instructions TEXT,
-    selected_options JSON,
     
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (menu_item_id) REFERENCES menu_items(id),
+    FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE,
     INDEX idx_order (order_id)
 );
 
 
 
-CREATE TABLE order_status_history (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    order_id INT NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    notes TEXT,
-    created_by ENUM('system', 'customer', 'restaurant', 'driver', 'admin') NOT NULL,
-    created_by_user_id INT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    INDEX idx_order_status (order_id, created_at)
-);
 
-
-
-CREATE TABLE driver_assignments (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    order_id INT NOT NULL,
-    driver_id INT NOT NULL,
-    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    accepted_at TIMESTAMP NULL,
-    rejected_at TIMESTAMP NULL,
-    rejection_reason VARCHAR(255),
-    
-    FOREIGN KEY (order_id) REFERENCES orders(id),
-    FOREIGN KEY (driver_id) REFERENCES drivers(user_id),
-    INDEX idx_driver_assignments (driver_id, assigned_at)
-);
-
-
-
+/*
 CREATE TABLE comments (
     id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT UNIQUE NOT NULL,  -- One review per order
     customer_id INT NOT NULL,
     restaurant_id INT NOT NULL,
-    driver_id INT NULL,
     
     restaurant_rating INT CHECK (restaurant_rating BETWEEN 1 AND 5),
     restaurant_comment TEXT,
     
-    driver_rating INT CHECK (driver_rating BETWEEN 1 AND 5),
-    driver_comment TEXT,
+
     
     food_quality_rating INT CHECK (food_quality_rating BETWEEN 1 AND 5),
     delivery_speed_rating INT CHECK (delivery_speed_rating BETWEEN 1 AND 5),
@@ -262,109 +189,9 @@ CREATE TABLE comments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (customer_id) REFERENCES customers(user_id),
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(id),
-    FOREIGN KEY (driver_id) REFERENCES drivers(user_id),
     
     INDEX idx_restaurant (restaurant_id),
-    INDEX idx_driver (driver_id),
     INDEX idx_customer (customer_id)
-);
-
-
-CREATE TABLE promotions (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    code VARCHAR(50) UNIQUE NOT NULL,
-    description TEXT,
-    discount_type ENUM('percentage', 'fixed_amount', 'free_delivery') NOT NULL,
-    discount_value DECIMAL(10,2) NOT NULL, 
-    min_order_amount DECIMAL(10,2) DEFAULT 0.00,
-    max_discount_amount DECIMAL(10,2), 
-    start_date TIMESTAMP NOT NULL,
-    end_date TIMESTAMP NOT NULL,
-    usage_limit INT,
-    per_user_limit INT DEFAULT 1,
-    applicable_restaurants JSON, 
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    INDEX idx_code (code),
-    INDEX idx_dates (start_date, end_date)
-);
-
-
-CREATE TABLE promotion_usage (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    promotion_id INT NOT NULL,
-    order_id INT NOT NULL,
-    customer_id INT NOT NULL,
-    discount_applied DECIMAL(10,2) NOT NULL,
-    used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (promotion_id) REFERENCES promotions(id),
-    FOREIGN KEY (order_id) REFERENCES orders(id),
-    FOREIGN KEY (customer_id) REFERENCES customers(user_id),
-    UNIQUE KEY unique_promotion_order (promotion_id, order_id)
-);
-
-
-
-CREATE TABLE carts (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    customer_id INT UNIQUE NOT NULL, 
-    restaurant_id INT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (customer_id) REFERENCES customers(user_id),
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
-);
-
-
-
-CREATE TABLE cart_items (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    cart_id INT NOT NULL,
-    menu_item_id INT NOT NULL,
-    quantity INT NOT NULL,
-    special_instructions TEXT,
-    selected_options JSON,
-    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
-    FOREIGN KEY (menu_item_id) REFERENCES menu_items(id),
-    INDEX idx_cart (cart_id)
-);
-
-
-CREATE TABLE payment_transactions (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    order_id INT NOT NULL,
-    transaction_id VARCHAR(255) UNIQUE NOT NULL, 
-    amount DECIMAL(10,2) NOT NULL,
-    currency VARCHAR(3) DEFAULT 'USD',
-    payment_method VARCHAR(50),
-    status VARCHAR(50),
-    gateway_response JSON,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (order_id) REFERENCES orders(id),
-    INDEX idx_order (order_id),
-    INDEX idx_transaction (transaction_id)
-);
-
-
-CREATE TABLE notifications (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    type ENUM('order_update', 'promotion', 'system', 'driver_assignment') NOT NULL,
-    title VARCHAR(255),
-    message TEXT NOT NULL,
-    data JSON,
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    INDEX idx_user_unread (user_id, is_read),
-    INDEX idx_created (created_at)
-);
+); */
