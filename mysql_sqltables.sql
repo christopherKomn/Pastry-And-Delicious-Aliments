@@ -1,3 +1,5 @@
+DROP DATABASE IF EXISTS pastry_db;
+
 CREATE DATABASE IF NOT EXISTS pastry_db
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
@@ -282,3 +284,76 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+-- Seed users and sample catalogue data for local development.
+INSERT INTO users (email, phone, username, password, user_type)
+VALUES
+    ('admin@pastry.local', '1000000001', 'admin_user', 'admin123', 'admin'),
+    ('customer@pastry.local', '1000000002', 'customer_user', 'customer123', 'customer'),
+    ('owner@pastry.local', '1000000003', 'store_manager', 'owner123', 'restaurant_owner');
+
+INSERT INTO customer (
+    user_id,
+    fullname,
+    city,
+    state,
+    postal_code,
+    address_line1
+)
+SELECT id, 'Sample Customer', 'Pastryville', 'PA', '10001', '1 Sweet Street'
+FROM users
+WHERE username = 'customer_user';
+
+INSERT INTO restaurants (
+    owner_id,
+    name,
+    description,
+    address_line1,
+    city,
+    state,
+    postal_code,
+    cuisine_type
+)
+SELECT id,
+       'The Pastry Corner',
+       'A small bakery serving fresh pastries and coffee.',
+       '10 Baker Street',
+       'Pastryville',
+       'PA',
+       '10001',
+       'Bakery'
+FROM users
+WHERE username = 'store_manager';
+
+INSERT INTO menu_categories (restaurant_id, name, description)
+SELECT id, 'Pastries', 'Freshly baked sweet pastries.'
+FROM restaurants
+WHERE name = 'The Pastry Corner';
+
+INSERT INTO menu_categories (restaurant_id, name, description)
+SELECT id, 'Drinks', 'Hot and cold drinks to enjoy with your pastry.'
+FROM restaurants
+WHERE name = 'The Pastry Corner';
+
+INSERT INTO menu_items (restaurant_id, category_id, name, quantity, description, price)
+SELECT restaurant.id, category.id, item.name, item.quantity, item.description, item.price
+FROM restaurants AS restaurant
+JOIN menu_categories AS category ON category.restaurant_id = restaurant.id
+JOIN (
+    SELECT 'Croissant' AS name, 25 AS quantity,
+           'Butter croissant baked fresh each morning.' AS description, 3.50 AS price,
+           'Pastries' AS category_name
+    UNION ALL
+    SELECT 'Apple Tart', 20,
+           'Golden apple tart with a flaky pastry crust.', 4.25,
+           'Pastries'
+    UNION ALL
+    SELECT 'Cappuccino', 30,
+           'Espresso with steamed milk and foam.', 3.75,
+           'Drinks'
+    UNION ALL
+    SELECT 'Iced Tea', 30,
+           'Refreshing house-brewed iced tea.', 2.50,
+           'Drinks'
+) AS item ON item.category_name = category.name
+WHERE restaurant.name = 'The Pastry Corner';
