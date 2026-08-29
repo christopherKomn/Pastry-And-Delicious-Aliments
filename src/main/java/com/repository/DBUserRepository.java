@@ -16,6 +16,8 @@ public class DBUserRepository implements IUserRepository {
 
     private final Connection connection;
 
+    
+
     public DBUserRepository(Connection connection) {
         this.connection = connection;
     }
@@ -52,7 +54,7 @@ public class DBUserRepository implements IUserRepository {
     }
 
     @Override
-    public void saveUser(UserModel user) {
+    public ErrorType saveUser(UserModel user) {
         String sql = "INSERT INTO users (email, phone, username, password, user_type, profile_image_url) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -68,10 +70,11 @@ public class DBUserRepository implements IUserRepository {
         } catch (SQLException exception) {
             throw databaseException("save user", exception);
         }
+        return ErrorType.SUCCESS;
     }
 
     @Override
-    public void updateUser(UserModel user) {
+    public ErrorType updateUser(UserModel user) {
         String sql = "UPDATE users SET email = ?, phone = ?, username = ?, password = ?, "
                 + "user_type = ?, profile_image_url = ? WHERE id = ?";
 
@@ -79,15 +82,16 @@ public class DBUserRepository implements IUserRepository {
             setUserParameters(statement, user, true);
             int updatedRows = statement.executeUpdate();
             if (updatedRows == 0) {
-                throw new IllegalArgumentException("No user exists with ID " + user.getUserId());
+                return ErrorType.NOT_FOUND;
             }
+            return ErrorType.SUCCESS;
         } catch (SQLException exception) {
             throw databaseException("update user", exception);
         }
     }
 
     @Override
-    public void deleteUserById(int id) {
+    public ErrorType deleteUserById(int id) {
         String sql = "DELETE FROM users WHERE id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -96,6 +100,7 @@ public class DBUserRepository implements IUserRepository {
         } catch (SQLException exception) {
             throw databaseException("delete user", exception);
         }
+        return ErrorType.SUCCESS;
     }
 
     private UserModel mapUser(ResultSet resultSet) throws SQLException {
@@ -122,6 +127,23 @@ public class DBUserRepository implements IUserRepository {
             statement.setInt(7, user.getUserId());
         }
     }
+
+    @Override
+    public UserModel findByUsername(String username) {
+        String sql = "SELECT " + SELECT_COLUMNS + " FROM users WHERE username = ?";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, username);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? mapUser(resultSet) : null;
+            }
+        } catch (SQLException exception) {
+            throw databaseException("find user by username", exception);
+        }
+    }
+
+    
 
     private RuntimeException databaseException(String operation, SQLException exception) {
         return new RuntimeException("Could not " + operation, exception);

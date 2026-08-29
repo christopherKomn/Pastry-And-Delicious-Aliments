@@ -17,9 +17,9 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-import com.Admin.AdminMain;
-import com.Customer.CustomerMain;
-import com.StoreManager.StoreManagerMain;
+import com.admin.AdminMain;
+import com.customer.CustomerMain;
+import com.store_manager.StoreManagerMain;
 
 public class LoginFrame extends JFrame {
     private final Connection dbConnection;
@@ -50,7 +50,8 @@ public class LoginFrame extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent event) {
-                closeConnection();
+                //lol
+
             }
         });
     }
@@ -90,18 +91,9 @@ public class LoginFrame extends JFrame {
                 default -> JOptionPane.showMessageDialog(null, "Unknown user role: " + userType);
             }
         } finally {
-            closeConnection();
+            
             dispose();
         }
     }
 
-    private void closeConnection() {
-        try {
-            if (!dbConnection.isClosed()) {
-                dbConnection.close();
-            }
-        } catch (SQLException exception) {
-            System.err.println("Could not close database connection: " + exception.getMessage());
-        }
-    }
 }

@@ -40,7 +40,7 @@
     </dependencies>
 
     <build>
-        <testSourceDirectory>src/UnitTests/java</testSourceDirectory>
+        <testSourceDirectory>src/unit_tests/java</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

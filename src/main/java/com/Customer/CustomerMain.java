@@ -1,4 +1,4 @@
-package com.Customer;
+package com.customer;
 
 import java.sql.Connection;
 
