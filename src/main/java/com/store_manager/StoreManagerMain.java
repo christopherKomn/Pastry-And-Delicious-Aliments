@@ -1,4 +1,4 @@
-package com.StoreManager;
+package com.store_manager;
 
 import java.sql.Connection;
 

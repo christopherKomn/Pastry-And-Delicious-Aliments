@@ -8,9 +8,9 @@ USE pastry_db;
 
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    phone VARCHAR(20) NOT NULL UNIQUE,
-    username VARCHAR(100) NOT NULL,
+    email VARCHAR(255)  ,
+    phone VARCHAR(20) ,
+    username VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     user_type ENUM('customer', 'restaurant_owner', 'admin') NOT NULL,
     profile_image_url VARCHAR(500),
@@ -43,9 +43,9 @@ CREATE TABLE restaurants (
     cuisine_type VARCHAR(100),
     phone VARCHAR(20),
     email VARCHAR(255),
-    address_line1 VARCHAR(255) NOT NULL,
+    address_line1 VARCHAR(255) ,
     address_line2 VARCHAR(255),
-    city VARCHAR(100) NOT NULL,
+    city VARCHAR(100) ,
     state VARCHAR(50),
     postal_code VARCHAR(20),
     website VARCHAR(255),
@@ -66,7 +66,11 @@ CREATE TABLE restaurants (
     CONSTRAINT chk_restaurant_reviews
         CHECK (total_reviews >= 0),
 
-    
+    CONSTRAINT uq_restaurant_location
+        UNIQUE (name, address_line1, city, postal_code),
+
+    CONSTRAINT uq_restaurant_location2
+        UNIQUE (name, address_line2, city, postal_code),
 
     INDEX idx_restaurants_owner (owner_id),
     INDEX idx_restaurants_cuisine (cuisine_type),
@@ -108,7 +112,7 @@ CREATE TABLE menu_items (
         ON DELETE CASCADE,
     CONSTRAINT fk_item_category
         FOREIGN KEY (category_id) REFERENCES menu_categories(id)
-        ON DELETE SET NULL,
+        ON DELETE CASCADE,
     CONSTRAINT chk_item_quantity
         CHECK (quantity >= 0),
     CONSTRAINT chk_item_price
@@ -155,9 +159,11 @@ CREATE TABLE orders (
     picked_up_at TIMESTAMP NULL,
     delivered_at TIMESTAMP NULL,
     CONSTRAINT fk_order_customer
-        FOREIGN KEY (customer_id) REFERENCES customer(id),
+        FOREIGN KEY (customer_id) REFERENCES customer(id)
+        ON DELETE CASCADE,
     CONSTRAINT fk_order_restaurant
-        FOREIGN KEY (restaurant_id) REFERENCES restaurants(id),
+        FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+        ON DELETE CASCADE,
     CONSTRAINT chk_order_subtotal
         CHECK (subtotal >= 0.00),
     CONSTRAINT chk_order_discount
@@ -184,7 +190,8 @@ CREATE TABLE order_items (
         FOREIGN KEY (order_id) REFERENCES orders(id)
         ON DELETE CASCADE,
     CONSTRAINT fk_order_item_menu_item
-        FOREIGN KEY (menu_item_id) REFERENCES menu_items(id),
+        FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
+        ON DELETE CASCADE,
     CONSTRAINT chk_order_item_quantity
         CHECK (quantity > 0),
     CONSTRAINT chk_order_item_unit_price

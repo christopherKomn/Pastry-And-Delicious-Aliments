@@ -1,16 +1,33 @@
 package com.repository;
 
 import java.util.List;
-import com.models.*;
+
+import com.models.StoreManagerModel;
 
 public interface IStoreManagerRepository  {
+
+    public enum ErrorType {
+        NOT_FOUND,
+        IO_ERROR,
+        SUCCESS
+    };
+
     StoreManagerModel findById(int id);
 
     List<StoreManagerModel> findAll();
 
-    void save(StoreManagerModel storeManager);
+    ErrorType save(StoreManagerModel storeManager);
 
-    void update(StoreManagerModel storeManager);
+    ErrorType update(StoreManagerModel storeManager);
 
-    void deleteById(int id);
+    ErrorType deleteById(int id);
+
+    StoreManagerModel findByOwnerId(int ownerId);
+
+    StoreManagerModel findByNCAP(
+        String name , String city, 
+        String addressLine1, String postalCode);
+        
+
+
 }

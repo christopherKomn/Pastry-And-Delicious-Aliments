@@ -4,16 +4,26 @@ import java.util.List;
 
 import com.models.UserModel;
 public interface IUserRepository {
+
+    public enum ErrorType {
+        NOT_FOUND,
+        IO_ERROR,
+        SUCCESS
+    };
     
     UserModel findUserById(int id);
 
     List<UserModel> findAllUsers();
 
-    void saveUser(UserModel user);
+    ErrorType saveUser(UserModel user);
 
-    void updateUser(UserModel user);
+    ErrorType updateUser(UserModel user);
 
-    void deleteUserById(int id);
+    ErrorType deleteUserById(int id);
+
+    UserModel findByUsername(String username);
+
+    
 
     
 };
