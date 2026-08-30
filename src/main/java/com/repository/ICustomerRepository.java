@@ -1,16 +1,17 @@
 package com.repository;
 
 import java.util.List;
-import com.models.*;
 
+import com.ErrorCodes;
+import com.models.CustomerModel;
 public interface ICustomerRepository  {
     CustomerModel findById(int id);
 
     List<CustomerModel> findAll();
 
-    void save(CustomerModel customer);
+    ErrorCodes save(CustomerModel customer);
 
-    void update(CustomerModel customer);
+    ErrorCodes update(CustomerModel customer);
 
-    void deleteById(int id);
+    ErrorCodes deleteById(int id);
 }

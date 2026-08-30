@@ -3,7 +3,7 @@ import com.models.StoreManagerModel;
 import com.models.UserModel;
 import com.repository.IStoreManagerRepository;
 import com.repository.IUserRepository;
-
+import com.ErrorCodes;
 /**
  * @author Dimitris Smyrnakis and Xristoforos
  * @file CreateRestaurant.java
@@ -12,12 +12,7 @@ import com.repository.IUserRepository;
  */
 public class CreateRestaurant {
 
-    public enum CreateRestaurantResult {
-        GOOD_RESULT,
-        RESTAURANT_ALREADY_EXISTS,
-        USER_TYPE_NOT_RESTAURANT_OWNER ,
-        UNMACHED_USER_ID_AND_OWNER_ID
-    };
+    
 
 
     private final IStoreManagerRepository storeManagerRep;
@@ -41,7 +36,7 @@ public class CreateRestaurant {
 
 
 
-    public CreateRestaurantResult createRestaurant(
+    public ErrorCodes createRestaurant(
         UserModel user,
         StoreManagerModel restaurant) {
 
@@ -55,7 +50,7 @@ public class CreateRestaurant {
             restaurant.getAddress_line1(), restaurant.getPostal_code()
             );
         if (existingRestaurant != null) {
-            return CreateRestaurantResult.RESTAURANT_ALREADY_EXISTS;
+            return ErrorCodes.ALREADY_EXISTS;
         }
 
         // Check if the user exists in the database
@@ -71,7 +66,7 @@ public class CreateRestaurant {
             // If the user exists,
             // check if the user type is "restaurant_owner"
             if (!existingUser.getUser_type().equals("restaurant_owner")) {
-                return CreateRestaurantResult.USER_TYPE_NOT_RESTAURANT_OWNER;
+                return ErrorCodes.BAD_TYPE;
             }
             // else
             // update the user information in the database
@@ -90,7 +85,7 @@ public class CreateRestaurant {
         // save the restaurant in the database
         storeManagerRep.save(restaurant);
 
-        return CreateRestaurantResult.GOOD_RESULT;
+        return ErrorCodes.SUCCESS;
     }
 
     

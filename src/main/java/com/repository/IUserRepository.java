@@ -1,26 +1,56 @@
 package com.repository;
-
 import java.util.List;
 
+import com.ErrorCodes;
 import com.models.UserModel;
+/**
+ * @author Dimitris Smyrnakis
+ * @version 1.0
+ * @brief The user repository interface for accessing user model data
+ * from io . 
+ */
+
 public interface IUserRepository {
 
-    public enum ErrorType {
-        NOT_FOUND,
-        IO_ERROR,
-        SUCCESS
-    };
-    
+    /**
+     * @brief Finds a user by their ID.
+     * @param id The ID of the user to find.
+     * @return The UserModel object representing the user, or null if not found.
+     */
     UserModel findUserById(int id);
 
+    /**
+     * @brief Finds all users.
+     * @return A list of UserModel objects representing the users.
+     */
     List<UserModel> findAllUsers();
 
-    ErrorType saveUser(UserModel user);
+    /**
+     * @brief Saves a user.
+     * @param user The UserModel object representing the user to save.
+     * @return An ErrorCodes object indicating the result of the operation.
+     */
+    ErrorCodes saveUser(UserModel user);
 
-    ErrorType updateUser(UserModel user);
+    /**
+     * @brief Updates a user.
+     * @param user The UserModel object representing the user to update.
+     * @return An ErrorCodes object indicating the result of the operation.
+     */
+    ErrorCodes updateUser(UserModel user);
 
-    ErrorType deleteUserById(int id);
+    /**
+     * @brief Deletes a user by their ID.
+     * @param id The ID of the user to delete.
+     * @return An ErrorCodes object indicating the result of the operation.
+     */
+    ErrorCodes deleteUserById(int id);
 
+    /**
+     * @brief Finds a user by their username.
+     * @param username The username of the user to find.
+     * @return The UserModel object representing the user, or null if not found.
+     */
     UserModel findByUsername(String username);
 
     

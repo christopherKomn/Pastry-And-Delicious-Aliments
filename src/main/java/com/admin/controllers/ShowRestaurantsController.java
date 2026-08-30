@@ -5,10 +5,12 @@ import java.util.List;
 import com.admin.services.ShowRestaurantService;
 import com.admin.views.ShowRestaurantsView;
 import com.models.StoreManagerModel;
-
+import com.ErrorCodes;
 public class ShowRestaurantsController {
+
     private final ShowRestaurantService service;
     private  ShowRestaurantsView view;
+
     public ShowRestaurantsController(
         ShowRestaurantService showRestaurantService,
         ShowRestaurantsView showRestaurantsView) {
@@ -38,19 +40,18 @@ public class ShowRestaurantsController {
     
     public void RemoveRestaurant() {
         StoreManagerModel restaurant = view.getSelectedRestaurant();
-        ShowRestaurantService.ShowRestaurantResult
-         result = service.DeleteRestaurant(restaurant);
+        ErrorCodes  result = service.DeleteRestaurant(restaurant);
          
 
         switch (result) {
-            case GOOD_RESULT ->
+            case SUCCESS ->
                 view.showMessage("Restaurant deleted successfully.");
 
-            case RESTAURANT_NOT_FOUND ->
+            case NOT_FOUND ->
                 view.showMessage("Restaurant not found.");
 
         }
-        RefreshRestaurantList();
+        RefreshRestaurantList(); 
     }
 
     public void showMore(){
@@ -62,18 +63,18 @@ public class ShowRestaurantsController {
 
     public void saveRestaurant(){
         StoreManagerModel restaurant = view.getSelectedRestaurant();
-        ShowRestaurantService.ShowRestaurantResult
+        ErrorCodes
          result = service.UpdateRestaurant(restaurant);
         
 
         switch (result) {
-            case GOOD_RESULT ->
+            case SUCCESS ->
                 view.showMessage("Restaurant updated successfully.");
 
-            case RESTAURANT_ALREADY_EXISTS ->
+            case ALREADY_EXISTS ->
                 view.showMessage("This restaurant already exists.");
 
-            case RESTAURANT_NOT_FOUND ->
+            case NOT_FOUND ->
                 view.showMessage("Restaurant not found.");
 
         }

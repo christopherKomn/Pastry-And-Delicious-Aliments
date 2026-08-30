@@ -5,15 +5,12 @@ import java.util.List;
 import com.models.StoreManagerModel;
 import com.repository.IStoreManagerRepository;
 import com.repository.IUserRepository;
+import com.ErrorCodes;
 public class ShowRestaurantService {
     private final IStoreManagerRepository storeManagerRepository;
     private final IUserRepository userRepository;
 
-    public enum ShowRestaurantResult {
-        GOOD_RESULT,
-        RESTAURANT_NOT_FOUND,
-        RESTAURANT_ALREADY_EXISTS
-    };
+   
 
 
     public ShowRestaurantService(IStoreManagerRepository storeManagerRepository, IUserRepository userRepository ) {
@@ -29,22 +26,22 @@ public class ShowRestaurantService {
         return storeManagerRepository.findAll();
     } 
 
-    public ShowRestaurantResult UpdateRestaurant(StoreManagerModel restaurant) {
+    public ErrorCodes UpdateRestaurant(StoreManagerModel restaurant) {
         
-        return (storeManagerRepository.update(restaurant) 
-        != IStoreManagerRepository.ErrorType.NOT_FOUND ? 
-        ShowRestaurantResult.GOOD_RESULT : ShowRestaurantResult.RESTAURANT_NOT_FOUND);
+        return storeManagerRepository.update(restaurant);
     }
 
-    public  ShowRestaurantResult DeleteRestaurant(StoreManagerModel restaurant) {
+    public ErrorCodes DeleteRestaurant(StoreManagerModel restaurant) {
         
-
-        IStoreManagerRepository.ErrorType result = storeManagerRepository.deleteById(restaurant.getRestaurant_id());
-        if (result != IStoreManagerRepository.ErrorType.SUCCESS) {
-            return ShowRestaurantResult.RESTAURANT_NOT_FOUND;
+        if (restaurant == null) 
+            return ErrorCodes.NOT_FOUND;
+        
+        ErrorCodes result = storeManagerRepository.deleteById(restaurant.getRestaurant_id());
+        if (result != ErrorCodes.SUCCESS) {
+            return result;
         }
         
-        return ShowRestaurantResult.GOOD_RESULT;
+        return ErrorCodes.SUCCESS;
     }
 
     
