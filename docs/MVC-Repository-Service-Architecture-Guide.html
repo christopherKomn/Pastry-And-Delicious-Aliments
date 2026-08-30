@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>MVC, Service and Repository Architecture Guide</title>
+  <style>
+    @page { size: A4; margin: 17mm 16mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #2d323a; font: 10.4pt/1.48 Arial, sans-serif; }
+    h1 { color: #994a35; font-size: 25pt; margin: 0 0 4mm; }
+    h2 { color: #994a35; font-size: 17pt; margin: 8mm 0 3mm; border-bottom: 1px solid #dfe3e8; padding-bottom: 2mm; }
+    h3 { color: #343a43; font-size: 12.5pt; margin: 5mm 0 2mm; }
+    p { margin: 2mm 0; }
+    ul, ol { margin: 2mm 0 3mm 6mm; padding-left: 5mm; }
+    li { margin: 1mm 0; }
+    code { font-family: Consolas, monospace; background: #f2f4f7; padding: .2mm 1mm; border-radius: 2px; }
+    pre { white-space: pre-wrap; background: #f5f7fa; border-left: 3px solid #c45c3e; padding: 3mm; font: 8.4pt/1.43 Consolas, monospace; page-break-inside: avoid; }
+    table { width: 100%; border-collapse: collapse; margin: 3mm 0 5mm; font-size: 9pt; }
+    th, td { border: 1px solid #dfe3e8; padding: 2.2mm; vertical-align: top; }
+    th { background: #edf0f4; text-align: left; }
+    .cover { min-height: 238mm; display: flex; flex-direction: column; justify-content: center; }
+    .subtitle { color: #69707a; font-size: 13pt; }
+    .page { page-break-before: always; }
+    .note { background: #fff5f1; border: 1px solid #e8a58e; padding: 3mm; margin: 3mm 0; }
+    .good { background: #f1f8f3; border-color: #a9d3b1; }
+    .flow { display: flex; align-items: stretch; gap: 2mm; margin: 5mm 0; page-break-inside: avoid; }
+    .box { flex: 1; border: 1px solid #d6dbe2; border-radius: 4px; padding: 3mm 2mm; text-align: center; background: #fafbfc; }
+    .box strong { display: block; color: #994a35; margin-bottom: 1mm; }
+    .arrow { display: flex; align-items: center; font-size: 16pt; color: #8a919b; }
+    .small { color: #69707a; font-size: 9pt; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <h1>How the Application Is Connected</h1>
+    <div class="subtitle">MVC + Service + Repository Architecture</div>
+    <p>A practical guide based on the current Pastry and Delicious Aliments Java code.</p>
+    <p>This guide explains:</p>
+    <ul>
+      <li>what Models, Views, Controllers, Services and Repositories do;</li>
+      <li>how <code>AdminMain</code> connects the layers;</li>
+      <li>how a button click reaches MySQL and returns to the screen;</li>
+      <li>why repository interfaces make unit testing easier;</li>
+      <li>where the current project follows the architecture and where it can improve.</li>
+    </ul>
+  </section>
+
+  <section class="page">
+    <h2>1. The architecture in one picture</h2>
+    <div class="flow">
+      <div class="box"><strong>View</strong>Swing fields, tables, buttons, dialogs</div>
+      <div class="arrow">&#8594;</div>
+      <div class="box"><strong>Controller</strong>Reads UI and handles events</div>
+      <div class="arrow">&#8594;</div>
+      <div class="box"><strong>Service</strong>Business rules and workflow</div>
+      <div class="arrow">&#8594;</div>
+      <div class="box"><strong>Repository</strong>SQL and database mapping</div>
+      <div class="arrow">&#8594;</div>
+      <div class="box"><strong>MySQL</strong>Persistent tables and constraints</div>
+    </div>
+    <p>The response travels back in the opposite direction:</p>
+    <pre>MySQL result
+  -&gt; Repository returns a Model, List, or ErrorCodes
+  -&gt; Service interprets the result
+  -&gt; Controller chooses the UI response
+  -&gt; View displays data or a message</pre>
+
+    <h3>The Model travels between layers</h3>
+    <p><code>UserModel</code>, <code>StoreManagerModel</code>, and <code>CustomerModel</code> carry data. They do not perform SQL and do not display Swing dialogs.</p>
+
+    <table>
+      <tr><th>Layer</th><th>Knows about</th><th>Should not do</th></tr>
+      <tr><td>View</td><td>Swing components and controller-facing listeners/getters</td><td>SQL, repository calls, business decisions</td></tr>
+      <tr><td>Controller</td><td>View, service, UI event flow</td><td>Write SQL or contain large business rules</td></tr>
+      <tr><td>Service</td><td>Models, business rules, repository interfaces</td><td>Read text fields or show dialogs</td></tr>
+      <tr><td>Repository</td><td>Models, JDBC, SQL, table mapping</td><td>Know about JFrame/controller behavior</td></tr>
+      <tr><td>Model</td><td>Application data</td><td>Open database connections or windows</td></tr>
+    </table>
+  </section>
+
+  <section class="page">
+    <h2>2. AdminMain is the composition root</h2>
+    <p><code>AdminMain.AMain(...)</code> is the place where concrete objects are created and connected. This is sometimes called the <em>composition root</em>.</p>
+
+    <h3>Step 1: construct concrete repositories</h3>
+    <pre>IUserRepository userRepository =
+        new DBUserRepository(dbConnection);
+
+IStoreManagerRepository storeRepository =
+        new DBStoreManagerRepository(dbConnection);
+
+ICustomerRepository customerRepository =
+        new DBCustomerRepository(dbConnection);</pre>
+    <p>The variables use interface types, while the constructed objects are JDBC implementations. This separates what the application needs from how MySQL provides it.</p>
+
+    <h3>Step 2: inject repositories into services</h3>
+    <pre>CreateRestaurant createService =
+        new CreateRestaurant(storeRepository, userRepository);
+
+ShowRestaurantService showService =
+        new ShowRestaurantService(storeRepository, userRepository);</pre>
+
+    <h3>Step 3: create views</h3>
+    <pre>AdminView adminView = new AdminView();
+CreateRestaurantView createView = new CreateRestaurantView();
+ShowRestaurantsView restaurantsView = new ShowRestaurantsView();
+ShowCustomersView customersView = new ShowCustomersView();</pre>
+
+    <h3>Step 4: inject service and view into each controller</h3>
+    <pre>new CreateRestaurantController(createView, createService);
+new ShowRestaurantsController(showService, restaurantsView);</pre>
+
+    <div class="note good"><strong>Dependency injection:</strong> constructors receive dependencies rather than constructing them internally. A controller receives its view and service. A service receives repository interfaces. This makes dependencies visible and replaceable.</div>
+  </section>
+
+  <section class="page">
+    <h2>3. Repository layer</h2>
+    <p>A repository provides operations for one kind of stored data. It hides JDBC details from the service.</p>
+
+    <h3>Interface: the contract</h3>
+    <pre>public interface IStoreManagerRepository {
+    StoreManagerModel findById(int id);
+    List&lt;StoreManagerModel&gt; findAll();
+    ErrorCodes save(StoreManagerModel restaurant);
+    ErrorCodes update(StoreManagerModel restaurant);
+    ErrorCodes deleteById(int id);
+    StoreManagerModel findByOwnerId(int ownerId);
+    StoreManagerModel findByNCAP(
+        String name, String city,
+        String addressLine1, String postalCode);
+}</pre>
+    <p>The service depends on this interface, not on <code>DBStoreManagerRepository</code>. The interface says what is available without exposing SQL.</p>
+
+    <h3>Implementation: JDBC and SQL</h3>
+    <pre>public StoreManagerModel findById(int id) {
+    String sql = "SELECT " + SELECT_COLUMNS
+               + " FROM restaurants WHERE id = ?";
+
+    try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setInt(1, id);
+        try (ResultSet resultSet = statement.executeQuery()) {
+            return resultSet.next()
+                    ? mapStoreManager(resultSet)
+                    : null;
+        }
+    } catch (SQLException exception) {
+        throw databaseException("find restaurant by ID", exception);
+    }
+}</pre>
+
+    <h3>What this method does</h3>
+    <ol>
+      <li>Builds a parameterized SQL query.</li>
+      <li>Binds the ID safely through <code>PreparedStatement</code>.</li>
+      <li>Executes the query.</li>
+      <li>Maps a database row into <code>StoreManagerModel</code>.</li>
+      <li>Returns <code>null</code> when the ID does not exist.</li>
+      <li>Closes the statement and result set automatically.</li>
+    </ol>
+
+    <div class="note"><strong>Important distinction:</strong> “not found” is a normal result. A closed connection, invalid SQL, or foreign-key violation is an exceptional database failure.</div>
+  </section>
+
+  <section class="page">
+    <h2>4. Service layer</h2>
+    <p>A service expresses an application use case. It can coordinate multiple repositories and enforce rules that do not belong in the UI or SQL mapper.</p>
+
+    <h3>Example: CreateRestaurant uses two repositories</h3>
+    <pre>public CreateRestaurant(
+        IStoreManagerRepository storeManagerRepo,
+        IUserRepository userRepo) {
+    this.storeManagerRep = storeManagerRepo;
+    this.userRep = userRepo;
+}</pre>
+
+    <p>The creation workflow spans both the <code>users</code> and <code>restaurants</code> tables, so one service coordinates both repositories:</p>
+    <ol>
+      <li>Force the user type to <code>restaurant_owner</code>.</li>
+      <li>Check whether the same restaurant location already exists.</li>
+      <li>Find the user by username.</li>
+      <li>Create a new user or validate the existing user's type.</li>
+      <li>Copy the generated user ID into <code>restaurant.owner_id</code>.</li>
+      <li>Save the restaurant.</li>
+      <li>Return an <code>ErrorCodes</code> value.</li>
+    </ol>
+
+    <pre>StoreManagerModel existing = storeManagerRep.findByNCAP(
+        restaurant.getName(),
+        restaurant.getCity(),
+        restaurant.getAddress_line1(),
+        restaurant.getPostal_code());
+
+if (existing != null) {
+    return ErrorCodes.ALREADY_EXISTS;
+}
+
+UserModel existingUser = userRep.findByUsername(user.getUsername());
+// Create or validate user...
+
+restaurant.setOwner_id(existingUser.getUserId());
+storeManagerRep.save(restaurant);
+return ErrorCodes.SUCCESS;</pre>
+
+    <h3>ErrorCodes is a layer-neutral result</h3>
+    <p>The service does not show “Restaurant created successfully.” It returns <code>ErrorCodes.SUCCESS</code>. The controller translates that result into user-facing text.</p>
+  </section>
+
+  <section class="page">
+    <h2>5. Controller layer</h2>
+    <p>A controller connects UI events to services. It reads view input, constructs models, calls the service, and selects the appropriate view response.</p>
+
+    <h3>Listeners are attached in the constructor</h3>
+    <pre>public CreateRestaurantController(
+        CreateRestaurantView view,
+        CreateRestaurant service) {
+    this.view = view;
+    this.service = service;
+
+    view.addCreateListener(event -&gt; createRestaurant());
+}</pre>
+
+    <h3>Form values become models</h3>
+    <pre>UserModel user = new UserModel();
+user.setUsername(view.getUsernameInput());
+user.setUserEmail(view.getEmailInput());
+user.setUserPassword(view.getPasswordInput());
+user.setUserPhone(view.getPhoneInput());
+
+StoreManagerModel restaurant = new StoreManagerModel();
+restaurant.setName(view.getRestaurantNameInput());
+restaurant.setAddress_line1(view.getAddressInput());
+restaurant.setCity(view.getCityInput());
+restaurant.setPostal_code(view.getPostalCodeInput());</pre>
+
+    <h3>The service result becomes a UI message</h3>
+    <pre>ErrorCodes result = service.createRestaurant(user, restaurant);
+
+switch (result) {
+    case SUCCESS -&gt;
+        view.showMessage("Restaurant created successfully.");
+    case ALREADY_EXISTS -&gt;
+        view.showMessage("This restaurant already exists.");
+    case BAD_TYPE -&gt;
+        view.showMessage("The user type is invalid.");
+    default -&gt;
+        view.showMessage("The operation failed.");
+}</pre>
+
+    <p>The controller knows the text appropriate for the current screen. The service remains reusable by another controller or by unit tests.</p>
+  </section>
+
+  <section class="page">
+    <h2>6. View layer</h2>
+    <p>A view owns Swing components and exposes a small public API to its controller.</p>
+
+    <h3>Expose events rather than service calls</h3>
+    <pre>public void addCreateListener(ActionListener listener) {
+    createButton.addActionListener(listener);
+}</pre>
+
+    <h3>Expose input as plain values</h3>
+    <pre>public String getRestaurantNameInput() {
+    return restaurantNameField.getText().trim();
+}</pre>
+
+    <h3>Accept data from outside</h3>
+    <pre>public void setRestaurants(List&lt;StoreManagerModel&gt; restaurants) {
+    tableModel.setRestaurants(restaurants);
+}</pre>
+
+    <h3>Expose the selected model</h3>
+    <pre>public StoreManagerModel getSelectedRestaurant() {
+    stopCellEditing();
+    int row = restaurantTable.getSelectedRow();
+    return row &lt; 0 ? null : tableModel.getRestaurantAt(row);
+}</pre>
+
+    <div class="note good">This pattern gives the controller enough power to coordinate behavior without exposing every private Swing field.</div>
+  </section>
+
+  <section class="page">
+    <h2>7. End-to-end example: Create Restaurant</h2>
+    <pre>1. User enters form values in CreateRestaurantView.
+2. User presses Create.
+3. Swing invokes the controller's registered ActionListener.
+4. CreateRestaurantController reads the view getters.
+5. Controller creates UserModel and StoreManagerModel.
+6. Controller calls CreateRestaurant.createRestaurant(...).
+7. Service checks duplicates through IStoreManagerRepository.
+8. Service finds/saves the user through IUserRepository.
+9. DBUserRepository executes SQL against users.
+10. DBStoreManagerRepository executes SQL against restaurants.
+11. Repositories return models/ErrorCodes.
+12. Service returns ErrorCodes to the controller.
+13. Controller calls view.showMessage(...).</pre>
+
+    <div class="flow">
+      <div class="box"><strong>CreateRestaurantView</strong>Create button</div>
+      <div class="arrow">&#8594;</div>
+      <div class="box"><strong>Controller</strong>Builds 2 models</div>
+      <div class="arrow">&#8594;</div>
+      <div class="box"><strong>CreateRestaurant</strong>Coordinates rules</div>
+      <div class="arrow">&#8594;</div>
+      <div class="box"><strong>2 repositories</strong>users + restaurants</div>
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>8. End-to-end example: Show and update restaurants</h2>
+    <h3>Loading the table</h3>
+    <pre>Controller.RefreshRestaurantList()
+  -&gt; service.getAllRestaurants()
+  -&gt; repository.findAll()
+  -&gt; SELECT ... FROM restaurants
+  -&gt; List&lt;StoreManagerModel&gt;
+  -&gt; view.setRestaurants(list)</pre>
+
+    <h3>Saving an edited row</h3>
+    <pre>public void saveRestaurant() {
+    StoreManagerModel restaurant = view.getSelectedRestaurant();
+    ErrorCodes result = service.UpdateRestaurant(restaurant);
+    // Show result message, then refresh the list.
+}</pre>
+    <p>The table edits the selected model's fields. The controller retrieves that model and passes it to the service. The repository executes an <code>UPDATE ... WHERE id = ?</code>.</p>
+
+    <h3>Showing details</h3>
+    <pre>StoreManagerModel restaurant = view.getSelectedRestaurant();
+ShowRestaurantsView.showRestaurantDetails(view, restaurant);</pre>
+    <p>This does not need the database if the table already holds all required fields. Refreshing before reading the selection would clear the selection.</p>
+  </section>
+
+  <section class="page">
+    <h2>9. Why repository interfaces help unit tests</h2>
+    <p>A service test should not require MySQL. Mockito creates objects implementing the repository interfaces:</p>
+    <pre>@Mock
+private IStoreManagerRepository storeManagerRepository;
+
+@Mock
+private IUserRepository userRepository;
+
+private CreateRestaurant service;
+
+@BeforeEach
+void setUp() {
+    service = new CreateRestaurant(
+        storeManagerRepository,
+        userRepository);
+}</pre>
+
+    <p>The test controls repository answers:</p>
+    <pre>when(storeManagerRepository.findByNCAP(
+        "Pastry House", "Athens",
+        "10 Baker Street", "10558"))
+    .thenReturn(new StoreManagerModel());
+
+ErrorCodes result = service.createRestaurant(user, restaurant);
+
+assertEquals(ErrorCodes.ALREADY_EXISTS, result);
+verify(storeManagerRepository, never()).save(restaurant);</pre>
+
+    <p>The test checks only service decisions. JDBC integration can be tested separately.</p>
+  </section>
+
+  <section class="page">
+    <h2>10. Current project boundaries and improvements</h2>
+    <p>The project largely follows the intended dependency direction, but two current areas bypass it:</p>
+
+    <h3>Controller accesses a repository through the service</h3>
+    <pre>List&lt;UserModel&gt; users = service.getUserRep().findAllUsers();</pre>
+    <p>This makes the controller aware of repository behavior. A cleaner design would expose a service method such as <code>getAllUsers()</code>, allowing the service to remain the controller's only data dependency.</p>
+
+    <h3>AdminMain loads customers directly from a repository</h3>
+    <pre>List&lt;CustomerModel&gt; allCustomers = customerRepository.findAll();
+showCustomersView.setCustomers(allCustomers);</pre>
+    <p>The comment already marks this as a UI experiment. In the final design, a customer service and controller should load the list.</p>
+
+    <h3>Business-operation transactions</h3>
+    <p>Creating a restaurant writes both a user and a restaurant. Ideally those writes share one database transaction so that either both succeed or both roll back. This is a future improvement; it does not change the responsibility of each layer.</p>
+
+    <h3>Naming consistency</h3>
+    <p>Java convention uses lowercase packages and lower camel case method names, for example <code>com.admin</code>, <code>updateRestaurant()</code>, <code>deleteRestaurant()</code>, and <code>refreshRestaurantList()</code>.</p>
+  </section>
+
+  <section class="page">
+    <h2>11. Rules of thumb</h2>
+    <table>
+      <tr><th>If you are writing...</th><th>Put it in...</th></tr>
+      <tr><td>JTextField, JTable, JFrame, JOptionPane</td><td>View</td></tr>
+      <tr><td>Button listener, reading form values, choosing a message</td><td>Controller</td></tr>
+      <tr><td>Duplicate check, user-type rule, multi-step workflow</td><td>Service</td></tr>
+      <tr><td>SELECT, INSERT, UPDATE, DELETE, ResultSet mapping</td><td>Repository implementation</td></tr>
+      <tr><td>Fields describing a user/customer/restaurant</td><td>Model</td></tr>
+      <tr><td>Creating and connecting all objects</td><td>Application entry point / composition root</td></tr>
+    </table>
+
+    <h3>Final dependency direction</h3>
+    <pre>AdminMain
+  -&gt; constructs everything
+
+Controller
+  -&gt; View
+  -&gt; Service
+
+Service
+  -&gt; Repository interfaces
+  -&gt; Models
+
+DB Repository
+  -&gt; JDBC / MySQL
+  -&gt; Models
+
+View
+  -&gt; Swing
+  -&gt; Models used for display</pre>
+
+    <div class="note good"><strong>The core idea:</strong> each layer should have one reason to change. UI redesign changes the view; business-rule changes affect the service; SQL/schema changes affect repositories.</div>
+  </section>
+</body>
+</html>
