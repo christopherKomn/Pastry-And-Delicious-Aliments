@@ -8,10 +8,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ErrorCodes;
 import com.models.UserModel;
 
 public class DBUserRepository implements IUserRepository {
-    private static final String SELECT_COLUMNS = "id, email, phone, username, password, user_type, "
+    private static final String SELECT_COLUMNS = 
+    "id, email, phone, username, password, user_type, "
             + "profile_image_url, created_at";
 
     private final Connection connection;
@@ -49,18 +51,21 @@ public class DBUserRepository implements IUserRepository {
             }
             return users;
         } catch (SQLException exception) {
-            throw databaseException("find all users", exception);
+            System.out.println( databaseException("find all users", exception).getMessage());
+            return null;
         }
     }
 
     @Override
-    public ErrorType saveUser(UserModel user) {
+    public ErrorCodes saveUser(UserModel user) {
         String sql = "INSERT INTO users (email, phone, username, password, user_type, profile_image_url) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             setUserParameters(statement, user, false);
-            statement.executeUpdate();
+            if (statement.executeUpdate() == 0) {
+                return ErrorCodes.FAILED_TO_WRITE;
+            }
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
@@ -68,13 +73,15 @@ public class DBUserRepository implements IUserRepository {
                 }
             }
         } catch (SQLException exception) {
-            throw databaseException("save user", exception);
+            System.out.println("Error occurred while saving user: " 
+            + databaseException("save user", exception).getMessage());
+            return ErrorCodes.FAILED_TO_WRITE;
         }
-        return ErrorType.SUCCESS;
+        return ErrorCodes.SUCCESS;
     }
 
     @Override
-    public ErrorType updateUser(UserModel user) {
+    public ErrorCodes updateUser(UserModel user) {
         String sql = "UPDATE users SET email = ?, phone = ?, username = ?, password = ?, "
                 + "user_type = ?, profile_image_url = ? WHERE id = ?";
 
@@ -82,16 +89,16 @@ public class DBUserRepository implements IUserRepository {
             setUserParameters(statement, user, true);
             int updatedRows = statement.executeUpdate();
             if (updatedRows == 0) {
-                return ErrorType.NOT_FOUND;
+                return ErrorCodes.NOT_FOUND;
             }
-            return ErrorType.SUCCESS;
+            return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
             throw databaseException("update user", exception);
         }
     }
 
     @Override
-    public ErrorType deleteUserById(int id) {
+    public ErrorCodes deleteUserById(int id) {
         String sql = "DELETE FROM users WHERE id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -100,7 +107,7 @@ public class DBUserRepository implements IUserRepository {
         } catch (SQLException exception) {
             throw databaseException("delete user", exception);
         }
-        return ErrorType.SUCCESS;
+        return ErrorCodes.SUCCESS;
     }
 
     private UserModel mapUser(ResultSet resultSet) throws SQLException {

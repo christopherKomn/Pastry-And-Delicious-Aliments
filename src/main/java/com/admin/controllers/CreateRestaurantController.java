@@ -6,6 +6,7 @@ import com.admin.services.CreateRestaurant;
 import com.admin.views.CreateRestaurantView;
 import com.models.StoreManagerModel;
 import com.models.UserModel;
+import com.ErrorCodes;
 
 public class CreateRestaurantController {
 
@@ -29,6 +30,8 @@ public class CreateRestaurantController {
     }
 
     private void createRestaurant() {
+
+        
         UserModel user = new UserModel();
         user.setUsername(view.getUsernameInput());
         user.setUserEmail(view.getEmailInput());
@@ -45,21 +48,27 @@ public class CreateRestaurantController {
         restaurant.setEmail(view.getRestaurantEmailInput());
         restaurant.setCuisine_type(view.getCuisineTypeInput());
 
-        CreateRestaurant.CreateRestaurantResult result =
+        ErrorCodes result =
                 service.createRestaurant(user, restaurant);
 
         switch (result) {
-            case GOOD_RESULT ->
+            case SUCCESS ->
                 view.showMessage("Restaurant created successfully.");
 
-            case RESTAURANT_ALREADY_EXISTS ->
+            case ALREADY_EXISTS ->
                 view.showMessage("This restaurant already exists.");
 
-            case USER_TYPE_NOT_RESTAURANT_OWNER ->
+            case BAD_TYPE ->
                 view.showMessage("The user type is invalid.");
 
-            case UNMACHED_USER_ID_AND_OWNER_ID ->
+            case UNMATCHED_IDS ->
                 view.showMessage("The owner and user IDs do not match.");
+
+            case NOT_FOUND ->
+                view.showMessage("The specified user was not found.");
+
+            case UNKNOWN_ERROR ->
+                view.showMessage("An unknown error occurred.");
         }
     }
 }

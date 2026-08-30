@@ -7,8 +7,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import com.models.*;
 
+import com.ErrorCodes;
+import com.models.CustomerModel;
 public class DBCustomerRepository implements ICustomerRepository {
     private static final String SELECT_COLUMNS = "id, user_id, fullname, city, state, postal_code, "
             + "address_line1, address_line2";
@@ -55,7 +56,7 @@ public class DBCustomerRepository implements ICustomerRepository {
     }
 
     @Override
-    public void save(CustomerModel customer) {
+    public ErrorCodes save(CustomerModel customer) {
         String sql = "INSERT INTO customer (user_id, fullname, city, state, postal_code, address_line1, "
                 + "address_line2) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
@@ -70,25 +71,28 @@ public class DBCustomerRepository implements ICustomerRepository {
         } catch (SQLException exception) {
             throw databaseException("save customer", exception);
         }
+        return ErrorCodes.SUCCESS;
     }
 
     @Override
-    public void update(CustomerModel customer) {
+    public ErrorCodes update(CustomerModel customer) {
         String sql = "UPDATE customer SET user_id = ?, fullname = ?, city = ?, state = ?, postal_code = ?, "
                 + "address_line1 = ?, address_line2 = ? WHERE id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             setCustomerParameters(statement, customer, true);
             if (statement.executeUpdate() == 0) {
-                throw new IllegalArgumentException("No customer exists with ID " + customer.getId());
+                return ErrorCodes.NOT_FOUND;
             }
         } catch (SQLException exception) {
             throw databaseException("update customer", exception);
         }
+        return ErrorCodes.SUCCESS;
     }
+        
 
     @Override
-    public void deleteById(int id) {
+    public ErrorCodes deleteById(int id) {
         String sql = "DELETE FROM customer WHERE id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -97,7 +101,7 @@ public class DBCustomerRepository implements ICustomerRepository {
         } catch (SQLException exception) {
             throw databaseException("delete customer", exception);
         }
-    
+        return ErrorCodes.SUCCESS;
     }
     
     private CustomerModel mapCustomer(ResultSet resultSet) throws SQLException {

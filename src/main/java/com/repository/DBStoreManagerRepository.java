@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ErrorCodes;
 import com.models.StoreManagerModel;
 
 public class DBStoreManagerRepository implements IStoreManagerRepository {
@@ -53,7 +54,7 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
     }
 
     @Override
-    public ErrorType save(StoreManagerModel storeManager) {
+    public ErrorCodes save(StoreManagerModel storeManager) {
         String sql = "INSERT INTO restaurants (owner_id, name, description, logo_url, cover_image_url, "
                 + "cuisine_type, phone, email, address_line1, address_line2, city, state, postal_code, website, "
                 + "is_active, is_accepting_orders, min_order_amount, delivery_fee) "
@@ -62,23 +63,23 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             setStoreManagerParameters(statement, storeManager, false);
             if (statement.executeUpdate() == 0) {
-                return ErrorType.IO_ERROR;
+                return ErrorCodes.IO_ERROR;
             }
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     storeManager.setRestaurant_id(generatedKeys.getInt(1));
                 }else {
-                    return ErrorType.NOT_FOUND;
+                    return ErrorCodes.NOT_FOUND;
                 }
             }
         } catch (SQLException exception) {
             throw databaseException("save restaurant", exception);
         }
-        return ErrorType.SUCCESS;
+        return ErrorCodes.SUCCESS;
     }
 
     @Override
-    public ErrorType update(StoreManagerModel storeManager) {
+    public ErrorCodes update(StoreManagerModel storeManager) {
         String sql = "UPDATE restaurants SET owner_id = ?, name = ?, description = ?, logo_url = ?, "
                 + "cover_image_url = ?, cuisine_type = ?, phone = ?, email = ?, address_line1 = ?, "
                 + "address_line2 = ?, city = ?, state = ?, postal_code = ?, website = ?, is_active = ?, "
@@ -87,28 +88,28 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             setStoreManagerParameters(statement, storeManager, true);
             if (statement.executeUpdate() == 0) {
-                return ErrorType.NOT_FOUND;
+                return ErrorCodes.NOT_FOUND;
             }
         } catch (SQLException exception) {
             throw databaseException("update restaurant", exception);
         }
-        return ErrorType.SUCCESS;
+        return ErrorCodes.SUCCESS;
     }
 
     @Override
-    public ErrorType deleteById(int id) {
+    public ErrorCodes deleteById(int id) {
         String sql = "DELETE FROM restaurants WHERE id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             statement.executeUpdate();
             if (statement.getUpdateCount() == 0) {
-                return ErrorType.NOT_FOUND;
+                return ErrorCodes.NOT_FOUND;
             }
         } catch (SQLException exception) {
             throw databaseException("delete restaurant by id " + id, exception);
         }
-        return ErrorType.SUCCESS;
+        return ErrorCodes.SUCCESS;
     }
 
     @Override

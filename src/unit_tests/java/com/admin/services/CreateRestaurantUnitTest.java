@@ -12,9 +12,14 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.admin.services.CreateRestaurant.CreateRestaurantResult.GOOD_RESULT;
-import static com.admin.services.CreateRestaurant.CreateRestaurantResult.RESTAURANT_ALREADY_EXISTS;
-import static com.admin.services.CreateRestaurant.CreateRestaurantResult.USER_TYPE_NOT_RESTAURANT_OWNER;
+import static com.ErrorCodes.SUCCESS;
+import static com.ErrorCodes.ALREADY_EXISTS;
+import static com.ErrorCodes.BAD_TYPE;
+import static com.ErrorCodes.UNMATCHED_IDS;
+import static com.ErrorCodes.NOT_FOUND;
+import static com.ErrorCodes.UNKNOWN_ERROR;
+
+import com.ErrorCodes;
 import com.models.StoreManagerModel;
 import com.models.UserModel;
 import com.repository.IStoreManagerRepository;
@@ -54,10 +59,10 @@ class CreateRestaurantUnitTest {
                 "Pastry House", "Athens", "10 Baker Street", "10558"))
                 .thenReturn(new StoreManagerModel());
 
-        CreateRestaurant.CreateRestaurantResult result =
+        ErrorCodes result =
                 service.createRestaurant(user, restaurant);
 
-        assertEquals(RESTAURANT_ALREADY_EXISTS, result);
+        assertEquals(ALREADY_EXISTS, result);
         verifyNoInteractions(userRepository);
         verify(storeManagerRepository, never()).save(restaurant);
     }
@@ -70,10 +75,10 @@ class CreateRestaurantUnitTest {
 
         when(userRepository.findByUsername("new_owner")).thenReturn(existingUser);
 
-        CreateRestaurant.CreateRestaurantResult result =
+        ErrorCodes result =
                 service.createRestaurant(user, restaurant);
 
-        assertEquals(USER_TYPE_NOT_RESTAURANT_OWNER, result);
+        assertEquals(BAD_TYPE, result);
         verify(userRepository, never()).updateUser(existingUser);
         verify(storeManagerRepository, never()).save(restaurant);
     }
@@ -84,14 +89,14 @@ class CreateRestaurantUnitTest {
         doAnswer(invocation -> {
             UserModel savedUser = invocation.getArgument(0);
             savedUser.setUserId(42);
-            return IUserRepository.ErrorType.SUCCESS;
+            return ErrorCodes.SUCCESS;
         }).when(userRepository).saveUser(user);
         when(userRepository.findUserById(42)).thenReturn(user);
 
-        CreateRestaurant.CreateRestaurantResult result =
+        ErrorCodes result =
                 service.createRestaurant(user, restaurant);
 
-        assertEquals(GOOD_RESULT, result);
+        assertEquals(SUCCESS, result);
         assertEquals("restaurant_owner", user.getUser_type());
         assertEquals(42, restaurant.getOwner_id());
         verify(userRepository).saveUser(user);
@@ -108,10 +113,10 @@ class CreateRestaurantUnitTest {
 
         when(userRepository.findByUsername("new_owner")).thenReturn(existingOwner);
 
-        CreateRestaurant.CreateRestaurantResult result =
+        ErrorCodes result =
                 service.createRestaurant(user, restaurant);
 
-        assertEquals(GOOD_RESULT, result);
+        assertEquals(SUCCESS, result);
         assertEquals(84, restaurant.getOwner_id());
         verify(userRepository).updateUser(existingOwner);
         verify(userRepository, never()).saveUser(user);
