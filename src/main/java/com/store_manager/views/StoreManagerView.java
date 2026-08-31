@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,8 +40,13 @@ public class StoreManagerView extends JFrame {
 
     private final DefaultListModel<CustomerModel> customerListModel = new DefaultListModel<>();
     private final JList<CustomerModel> customerList = new JList<>(customerListModel);
+    private final JPanel mainContentPanel = new JPanel(new BorderLayout());
     private final JButton selfDestructButton = new JButton("Self Destruct");
-    private final JMenuItem updateStoreMenuItem = new JMenuItem("Update Store");
+    private final JMenu updateStoreMenu = new JMenu("Update Store");
+    private final JMenuItem updateItemsMenuItem = new JMenuItem("Items");
+    private final JMenuItem updateStatusMenuItem = new JMenuItem("Status");
+    private final JMenuItem updatePricesMenuItem = new JMenuItem("Prices");
+    private final JMenuItem showProfileMenuItem = new JMenuItem("Show More");
     private final JMenuItem logOutMenuItem = new JMenuItem("Log Out");
     private final List<ActionListener> customerDoubleClickListeners = new ArrayList<>();
 
@@ -58,6 +64,10 @@ public class StoreManagerView extends JFrame {
         JPanel workspace = new JPanel(new BorderLayout());
         workspace.setBackground(BACKGROUND);
         workspace.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 18));
+
+        mainContentPanel.setBackground(BACKGROUND);
+        mainContentPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 18, 8));
+        workspace.add(mainContentPanel, BorderLayout.CENTER);
 
         selfDestructButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
         selfDestructButton.setForeground(Color.WHITE);
@@ -86,6 +96,7 @@ public class StoreManagerView extends JFrame {
         root.add(splitPane, BorderLayout.CENTER);
 
         configureCustomerList();
+        setMainContent(createTestPanel());
         setSize(1050, 650);
         setLocationRelativeTo(null);
     }
@@ -93,11 +104,19 @@ public class StoreManagerView extends JFrame {
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         JMenu storeMenu = new JMenu("Store");
+        JMenu profileMenu = new JMenu("Profile");
 
-        storeMenu.add(updateStoreMenuItem);
-        storeMenu.addSeparator();
-        storeMenu.add(logOutMenuItem);
+        updateStoreMenu.add(updateItemsMenuItem);
+        updateStoreMenu.add(updateStatusMenuItem);
+        updateStoreMenu.add(updatePricesMenuItem);
+
+        storeMenu.add(updateStoreMenu);
+        profileMenu.add(showProfileMenuItem);
+        profileMenu.addSeparator();
+        profileMenu.add(logOutMenuItem);
+
         menuBar.add(storeMenu);
+        menuBar.add(profileMenu);
 
         return menuBar;
     }
@@ -190,6 +209,53 @@ public class StoreManagerView extends JFrame {
         }
     }
 
+    public void setMainContent(JPanel panel) {
+        mainContentPanel.removeAll();
+        if (panel != null) {
+            mainContentPanel.add(panel, BorderLayout.CENTER);
+        }
+        mainContentPanel.revalidate();
+        mainContentPanel.repaint();
+    }
+
+    public static JPanel createTestPanel() {
+        JPanel testPanel = new JPanel(new BorderLayout(0, 18));
+        testPanel.setBackground(CARD_BACKGROUND);
+        testPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(225, 229, 235)),
+                BorderFactory.createEmptyBorder(24, 26, 24, 26)));
+
+        JLabel title = new JLabel("Store Manager Test Panel");
+        title.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+        title.setForeground(TEXT_PRIMARY);
+
+        JLabel description = new JLabel(
+                "This temporary panel demonstrates the main content area.");
+        description.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+        description.setForeground(TEXT_SECONDARY);
+
+        JPanel heading = new JPanel(new BorderLayout(0, 5));
+        heading.setOpaque(false);
+        heading.add(title, BorderLayout.NORTH);
+        heading.add(description, BorderLayout.SOUTH);
+        testPanel.add(heading, BorderLayout.NORTH);
+
+        JPanel buttons = new JPanel(new GridLayout(2, 2, 12, 12));
+        buttons.setOpaque(false);
+        buttons.add(new JButton("Test Button 1"));
+        buttons.add(new JButton("Test Button 2"));
+        buttons.add(new JButton("Test Button 3"));
+        buttons.add(new JButton("Test Button 4"));
+        testPanel.add(buttons, BorderLayout.CENTER);
+
+        JLabel footer = new JLabel("Replace this panel from the controller when ready.");
+        footer.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 12));
+        footer.setForeground(TEXT_SECONDARY);
+        testPanel.add(footer, BorderLayout.SOUTH);
+
+        return testPanel;
+    }
+
     public CustomerModel getSelectedCustomer() {
         return customerList.getSelectedValue();
     }
@@ -204,12 +270,24 @@ public class StoreManagerView extends JFrame {
         selfDestructButton.addActionListener(listener);
     }
 
-    public void addUpdateStoreListener(ActionListener listener) {
-        updateStoreMenuItem.addActionListener(listener);
+    public void addUpdateItemsListener(ActionListener listener) {
+        updateItemsMenuItem.addActionListener(listener);
+    }
+
+    public void addUpdateStatusListener(ActionListener listener) {
+        updateStatusMenuItem.addActionListener(listener);
+    }
+
+    public void addUpdatePricesListener(ActionListener listener) {
+        updatePricesMenuItem.addActionListener(listener);
     }
 
     public void addLogOutListener(ActionListener listener) {
         logOutMenuItem.addActionListener(listener);
+    }
+
+    public void addShowProfileListener(ActionListener listener) {
+        showProfileMenuItem.addActionListener(listener);
     }
 
     private void notifyCustomerDoubleClickListeners() {

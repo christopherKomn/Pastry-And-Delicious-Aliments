@@ -60,8 +60,8 @@ public class StoreManagerModel {
         this.delivery_fee = delivery_fee;
         this.rating = rating;
         this.total_reviews = total_reviews;
-        this.created_at = created_at;
-        this.updated_at = updated_at;
+        this.created_at = copyTimestamp(created_at);
+        this.updated_at = copyTimestamp(updated_at);
     }
 
     public StoreManagerModel(StoreManagerModel other) {
@@ -87,8 +87,8 @@ public class StoreManagerModel {
         this.delivery_fee = other.delivery_fee;
         this.rating = other.rating;
         this.total_reviews = other.total_reviews;
-        this.created_at = other.created_at;
-        this.updated_at = other.updated_at;
+        this.created_at = copyTimestamp(other.created_at);
+        this.updated_at = copyTimestamp(other.updated_at);
     }
 
     // Getters and Setters
@@ -263,18 +263,22 @@ public class StoreManagerModel {
     }
 
     public Timestamp getCreated_at() {
-        return created_at;
+        return copyTimestamp(created_at);
     }
 
     public void setCreated_at(Timestamp created_at) {
-        this.created_at = created_at;
+        this.created_at = copyTimestamp(created_at);
     }
 
     public Timestamp getUpdated_at() {
-        return updated_at;
+        return copyTimestamp(updated_at);
     }
 
     public void setUpdated_at(Timestamp updated_at) {
-        this.updated_at = updated_at;
+        this.updated_at = copyTimestamp(updated_at);
+    }
+
+    private static Timestamp copyTimestamp(Timestamp value) {
+        return value == null ? null : (Timestamp) value.clone();
     }
 }

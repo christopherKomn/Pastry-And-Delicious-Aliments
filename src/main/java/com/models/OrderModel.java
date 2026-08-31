@@ -42,13 +42,13 @@ public class OrderModel {
         this.payment_method = payment_method;
         this.payment_intent_id = payment_intent_id;
         this.special_instructions = special_instructions;
-        this.actual_delivery_time = actual_delivery_time;
-        this.created_at = created_at;
-        this.updated_at = updated_at;
-        this.confirmed_at = confirmed_at;
-        this.prepared_at = prepared_at;
-        this.picked_up_at = picked_up_at;
-        this.delivered_at = delivered_at;
+        this.actual_delivery_time = copyTimestamp(actual_delivery_time);
+        this.created_at = copyTimestamp(created_at);
+        this.updated_at = copyTimestamp(updated_at);
+        this.confirmed_at = copyTimestamp(confirmed_at);
+        this.prepared_at = copyTimestamp(prepared_at);
+        this.picked_up_at = copyTimestamp(picked_up_at);
+        this.delivered_at = copyTimestamp(delivered_at);
     }
 
     public OrderModel(OrderModel other) {
@@ -62,13 +62,13 @@ public class OrderModel {
         this.payment_method = other.payment_method;
         this.payment_intent_id = other.payment_intent_id;
         this.special_instructions = other.special_instructions;
-        this.actual_delivery_time = other.actual_delivery_time;
-        this.created_at = other.created_at;
-        this.updated_at = other.updated_at;
-        this.confirmed_at = other.confirmed_at;
-        this.prepared_at = other.prepared_at;
-        this.picked_up_at = other.picked_up_at;
-        this.delivered_at = other.delivered_at;
+        this.actual_delivery_time = copyTimestamp(other.actual_delivery_time);
+        this.created_at = copyTimestamp(other.created_at);
+        this.updated_at = copyTimestamp(other.updated_at);
+        this.confirmed_at = copyTimestamp(other.confirmed_at);
+        this.prepared_at = copyTimestamp(other.prepared_at);
+        this.picked_up_at = copyTimestamp(other.picked_up_at);
+        this.delivered_at = copyTimestamp(other.delivered_at);
     }
 
     public int getId() {
@@ -152,58 +152,62 @@ public class OrderModel {
     }
 
     public Timestamp getActual_delivery_time() {
-        return actual_delivery_time;
+        return copyTimestamp(actual_delivery_time);
     }
 
     public void setActual_delivery_time(Timestamp actual_delivery_time) {
-        this.actual_delivery_time = actual_delivery_time;
+        this.actual_delivery_time = copyTimestamp(actual_delivery_time);
     }
 
     public Timestamp getCreated_at() {
-        return created_at;
+        return copyTimestamp(created_at);
     }
 
     public void setCreated_at(Timestamp created_at) {
-        this.created_at = created_at;
+        this.created_at = copyTimestamp(created_at);
     }
 
     public Timestamp getUpdated_at() {
-        return updated_at;
+        return copyTimestamp(updated_at);
     }
 
     public void setUpdated_at(Timestamp updated_at) {
-        this.updated_at = updated_at;
+        this.updated_at = copyTimestamp(updated_at);
     }
 
     public Timestamp getConfirmed_at() {
-        return confirmed_at;
+        return copyTimestamp(confirmed_at);
     }
 
     public void setConfirmed_at(Timestamp confirmed_at) {
-        this.confirmed_at = confirmed_at;
+        this.confirmed_at = copyTimestamp(confirmed_at);
     }
 
     public Timestamp getPrepared_at() {
-        return prepared_at;
+        return copyTimestamp(prepared_at);
     }
 
     public void setPrepared_at(Timestamp prepared_at) {
-        this.prepared_at = prepared_at;
+        this.prepared_at = copyTimestamp(prepared_at);
     }
 
     public Timestamp getPicked_up_at() {
-        return picked_up_at;
+        return copyTimestamp(picked_up_at);
     }
 
     public void setPicked_up_at(Timestamp picked_up_at) {
-        this.picked_up_at = picked_up_at;
+        this.picked_up_at = copyTimestamp(picked_up_at);
     }
 
     public Timestamp getDelivered_at() {
-        return delivered_at;
+        return copyTimestamp(delivered_at);
     }
 
     public void setDelivered_at(Timestamp delivered_at) {
-        this.delivered_at = delivered_at;
+        this.delivered_at = copyTimestamp(delivered_at);
+    }
+
+    private static Timestamp copyTimestamp(Timestamp value) {
+        return value == null ? null : (Timestamp) value.clone();
     }
 }

@@ -1,6 +1,11 @@
 package com.models;
 
 import java.sql.Timestamp;
+
+/**
+ * @brief UserModel is just a data structure represents the table in the database
+ * 
+ */
 public class UserModel {
 
     private int user_id;
@@ -25,7 +30,7 @@ public class UserModel {
         this.user_password = password;
         this.user_type = user_type;
         this.user_profile_image_url = profile_image_url;
-        this.user_created_at = created_at;
+        this.user_created_at = copyTimestamp(created_at);
     }
 
     public UserModel(UserModel other) {
@@ -36,7 +41,7 @@ public class UserModel {
         this.user_password = other.user_password;
         this.user_type = other.user_type;
         this.user_profile_image_url = other.user_profile_image_url;
-        this.user_created_at = other.user_created_at;
+        this.user_created_at = copyTimestamp(other.user_created_at);
     }
 
     // Getters and setters
@@ -97,10 +102,14 @@ public class UserModel {
     }
 
     public Timestamp getUser_created_at() {
-        return user_created_at;
+        return copyTimestamp(user_created_at);
     }
 
     public void setUser_created_at(Timestamp created_at) {
-        this.user_created_at = created_at;
+        this.user_created_at = copyTimestamp(created_at);
+    }
+
+    private static Timestamp copyTimestamp(Timestamp value) {
+        return value == null ? null : (Timestamp) value.clone();
     }
 }
