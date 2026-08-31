@@ -21,7 +21,7 @@ public class CreateRestaurantController {
         
         view.addShowUsersListener(event -> {
             view.clearUsers();
-            List<UserModel> users = service.getUserRep().findAllUsers();
+            List<UserModel> users = service.getAllUsers();
             for (UserModel user : users) {
                 view.addUser(user);
             }

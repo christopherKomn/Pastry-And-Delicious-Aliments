@@ -1,4 +1,4 @@
-package com.admin.*;
+package com.admin;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -49,6 +49,8 @@ public class AdminMain {
             ShowRestaurantService showRestaurantService =
                     new ShowRestaurantService(storeRepository , userRepository);
 
+            ShowCustomersService showCustomersService = 
+                    new ShowCustomersService(customerRepository , userRepository);
 
             // Views
             AdminView adminView = new AdminView();
@@ -69,6 +71,8 @@ public class AdminMain {
             ShowRestaurantsController showRestaurantsController =
                     new ShowRestaurantsController(showRestaurantService , showRestaurantsView);
 
+            ShowCustomersController showCustomersController = 
+                    new ShowCustomersController(showCustomersService , showCustomersView);
             
 
             // Window views close listeners
@@ -111,10 +115,7 @@ public class AdminMain {
                 adminView.setVisible(false);
             });
 
-            // for ui experiment
-            // this after the admin finished must removed
-            List<CustomerModel> allCustomers = customerRepository.findAll();
-            showCustomersView.setCustomers(allCustomers);
+            
             adminView.addShowCustomersListener(event -> {
                 showCustomersView.setVisible(true);
                 adminView.setVisible(false);
