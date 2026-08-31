@@ -4,6 +4,7 @@ import com.models.UserModel;
 import com.repository.IStoreManagerRepository;
 import com.repository.IUserRepository;
 import com.ErrorCodes;
+import java.util.*;
 /**
  * @author Dimitris Smyrnakis and Xristoforos
  * @file CreateRestaurant.java
@@ -32,6 +33,10 @@ public class CreateRestaurant {
     public final IUserRepository getUserRep() {
         return userRep;
     }
+
+    public List<UserModel> getAllUsers(){
+        return userRep.findAllUsers();
+    } 
 
 
 

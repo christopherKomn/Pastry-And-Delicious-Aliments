@@ -6,17 +6,13 @@ import java.sql.Connection;
 
 import javax.swing.SwingUtilities;
 
-import com.admin.controllers.CreateRestaurantController;
-import com.admin.controllers.ShowRestaurantsController;
-import com.admin.services.CreateRestaurant;
-import com.admin.services.ShowRestaurantService;
-import com.admin.views.AdminView;
-import com.admin.views.CreateRestaurantView;
-import com.admin.views.ShowRestaurantsView;
-import com.repository.DBStoreManagerRepository;
-import com.repository.DBUserRepository;
-import com.repository.IStoreManagerRepository;
-import com.repository.IUserRepository;
+import com.admin.controllers.*;
+import com.admin.services.*;
+import com.admin.views.*;
+import com.repository.*;
+import com.models.*;
+
+import java.util.List;
 
 public class AdminMain {
     public static void AMain(String[] args ,Connection dbConnection) {
@@ -36,22 +32,27 @@ public class AdminMain {
 
         SwingUtilities.invokeLater(() -> {
             
-
+            // Repositories
             IUserRepository userRepository =
                     new DBUserRepository(dbConnection);
 
             IStoreManagerRepository storeRepository =
                     new DBStoreManagerRepository(dbConnection);
 
+            ICustomerRepository customerRepository =
+                    new DBCustomerRepository(dbConnection);
 
+            // services
             CreateRestaurant service =
                     new CreateRestaurant(storeRepository, userRepository);
 
             ShowRestaurantService showRestaurantService =
                     new ShowRestaurantService(storeRepository , userRepository);
 
+            ShowCustomersService showCustomersService = 
+                    new ShowCustomersService(customerRepository , userRepository);
 
-
+            // Views
             AdminView adminView = new AdminView();
 
             ShowRestaurantsView showRestaurantsView =
@@ -59,17 +60,22 @@ public class AdminMain {
 
             CreateRestaurantView createRestaurantView =
                         new CreateRestaurantView();
+            ShowCustomersView showCustomersView = 
+                        new ShowCustomersView();
+            
 
-
+            // Controller
             CreateRestaurantController createRestaurantController =
                     new CreateRestaurantController(createRestaurantView ,service );
  
             ShowRestaurantsController showRestaurantsController =
                     new ShowRestaurantsController(showRestaurantService , showRestaurantsView);
 
+            ShowCustomersController showCustomersController = 
+                    new ShowCustomersController(showCustomersService , showCustomersView);
             
 
-            
+            // Window views close listeners
             createRestaurantView.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosed(WindowEvent event) {
@@ -77,14 +83,6 @@ public class AdminMain {
                         adminView.setVisible(true);
                     }
                 });
-            adminView.addCreateRestaurantListener(event -> {
-                
-
-                createRestaurantView.setVisible(true);
-                
-                adminView.setVisible(false);
-            });
-
             showRestaurantsView.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosed(WindowEvent event) {
@@ -92,11 +90,34 @@ public class AdminMain {
                         adminView.setVisible(true);
                     }
                 });
+            showCustomersView.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent event) {
+                        // Runs after the JFrame has been disposed.
+                        adminView.setVisible(true);
+                    }
+                });
+
+
+            // admin buttons action listeners
+            adminView.addCreateRestaurantListener(event -> {
+                
+
+                createRestaurantView.setVisible(true);
+                adminView.setVisible(false);
+            });
+
             adminView.addShowRestaurantsListener(event -> {
                 
 
                 showRestaurantsView.setVisible(true);
                 showRestaurantsController.RefreshRestaurantList();
+                adminView.setVisible(false);
+            });
+
+            
+            adminView.addShowCustomersListener(event -> {
+                showCustomersView.setVisible(true);
                 adminView.setVisible(false);
             });
 

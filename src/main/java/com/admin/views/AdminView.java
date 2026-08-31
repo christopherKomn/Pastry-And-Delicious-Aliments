@@ -60,10 +60,10 @@ public class AdminView extends JFrame {
 
         styleActiveButton(createRestaurantButton);
         styleActiveButton(showRestaurantsButton);
-        styleDisabledButton(showCustomersButton);
+        styleActiveButton(showCustomersButton);
 
         showRestaurantsButton.setEnabled(true);
-        showCustomersButton.setEnabled(false);
+        showCustomersButton.setEnabled(true);
 
         menuCard.add(createRestaurantButton);
         menuCard.add(showRestaurantsButton);
@@ -97,5 +97,9 @@ public class AdminView extends JFrame {
 
     public void addShowRestaurantsListener(ActionListener listener) {
         showRestaurantsButton.addActionListener(listener);
+    }
+
+    public void addShowCustomersListener(ActionListener listener){
+        showCustomersButton.addActionListener(listener);
     }
 }

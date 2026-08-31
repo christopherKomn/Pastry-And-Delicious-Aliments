@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Admin Views - Controller Integration Guide</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #2d323a; font: 10.5pt/1.48 Arial, sans-serif; }
+    h1 { color: #9f4d37; font-size: 25pt; margin: 0 0 5mm; }
+    h2 { color: #9f4d37; font-size: 17pt; margin: 8mm 0 3mm; border-bottom: 1px solid #e1e5eb; padding-bottom: 2mm; }
+    h3 { color: #343a43; font-size: 12.5pt; margin: 5mm 0 2mm; }
+    p { margin: 2mm 0; }
+    ul, ol { margin: 2mm 0 3mm 6mm; padding-left: 5mm; }
+    li { margin: 1mm 0; }
+    code { font-family: Consolas, monospace; background: #f2f4f7; padding: 0.2mm 1mm; border-radius: 2px; }
+    pre { white-space: pre-wrap; background: #f5f7fa; border-left: 3px solid #c45c3e; padding: 3mm; font: 8.6pt/1.45 Consolas, monospace; page-break-inside: avoid; }
+    table { width: 100%; border-collapse: collapse; margin: 3mm 0 5mm; font-size: 9pt; }
+    th, td { border: 1px solid #dfe3e8; padding: 2.2mm; vertical-align: top; }
+    th { background: #edf0f4; text-align: left; }
+    .cover { min-height: 235mm; display: flex; flex-direction: column; justify-content: center; }
+    .subtitle { color: #69707a; font-size: 13pt; }
+    .note { background: #fff5f1; border: 1px solid #e8a58e; padding: 3mm; margin: 3mm 0; }
+    .page-break { page-break-before: always; }
+    .signature { color: #69707a; margin-top: 12mm; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <h1>Admin Views</h1>
+    <div class="subtitle">Controller Integration Guide</div>
+    <p>This document describes the public functionality exposed by every Java Swing view in <code>com.admin.views</code>.</p>
+    <p>Covered classes:</p>
+    <ul>
+      <li><code>AdminView</code></li>
+      <li><code>CreateRestaurantView</code></li>
+      <li><code>ShowRestaurantsView</code></li>
+      <li><code>ShowCustomersView</code></li>
+    </ul>
+    <p class="signature">Pastry and Delicious Aliments &mdash; generated from the current project sources</p>
+  </section>
+
+  <section class="page-break">
+    <h2>1. General controller rules</h2>
+    <ol>
+      <li>Create views and interact with Swing components on the Swing Event Dispatch Thread (EDT).</li>
+      <li>The controller attaches listeners exposed by the view.</li>
+      <li>The controller calls services and repositories; views do not access the database.</li>
+      <li>The controller supplies lists and models through the view's public methods.</li>
+      <li>Always check selected-model getters for <code>null</code>.</li>
+    </ol>
+    <pre>Console/application setup
+    creates repositories and services
+            |
+            v
+Controller attaches view listeners
+            |
+            v
+View reports user action
+            |
+            v
+Controller calls service and updates view</pre>
+    <div class="note"><strong>Selection warning:</strong> Calling <code>setRestaurants(...)</code> or <code>setCustomers(...)</code> rebuilds the table data and clears the current selection. Read the selected model before refreshing.</div>
+
+    <h3>Typical window setup</h3>
+    <pre>SwingUtilities.invokeLater(() -&gt; {
+    AdminView view = new AdminView();
+    // Attach listeners before displaying the window.
+    view.setVisible(true);
+});</pre>
+  </section>
+
+  <section class="page-break">
+    <h2>2. AdminView</h2>
+    <p><code>AdminView</code> is the main admin dashboard. It exposes buttons for opening the other admin screens. The view does not create those screens itself.</p>
+
+    <table>
+      <tr><th>Method</th><th>Purpose</th></tr>
+      <tr><td><code>addCreateRestaurantListener(ActionListener)</code></td><td>Called when Create Restaurant is pressed.</td></tr>
+      <tr><td><code>addShowRestaurantsListener(ActionListener)</code></td><td>Called when Show Restaurants is pressed.</td></tr>
+      <tr><td><code>addShowCustomersListener(ActionListener)</code></td><td>Called when Show Customers is pressed.</td></tr>
+    </table>
+
+    <h3>Controller/application example</h3>
+    <pre>AdminView adminView = new AdminView();
+
+adminView.addCreateRestaurantListener(event -&gt; {
+    createRestaurantView.setVisible(true);
+    adminView.setVisible(false);
+});
+
+adminView.addShowRestaurantsListener(event -&gt; {
+    showRestaurantsController.refreshRestaurantList();
+    showRestaurantsView.setVisible(true);
+    adminView.setVisible(false);
+});
+
+adminView.addShowCustomersListener(event -&gt; {
+    showCustomersView.setCustomers(customerService.getAllCustomers());
+    showCustomersView.setVisible(true);
+    adminView.setVisible(false);
+});
+
+adminView.setVisible(true);</pre>
+  </section>
+
+  <section class="page-break">
+    <h2>3. CreateRestaurantView</h2>
+    <p>This view collects owner-account and restaurant information. It also contains a modal picker for selecting an existing user.</p>
+
+    <h3>Input getters</h3>
+    <table>
+      <tr><th>Owner input</th><th>Restaurant input</th></tr>
+      <tr><td><code>getUsernameInput()</code></td><td><code>getRestaurantNameInput()</code></td></tr>
+      <tr><td><code>getEmailInput()</code></td><td><code>getAddressInput()</code></td></tr>
+      <tr><td><code>getPasswordInput()</code></td><td><code>getCityInput()</code></td></tr>
+      <tr><td><code>getPhoneInput()</code></td><td><code>getPostalCodeInput()</code></td></tr>
+      <tr><td></td><td><code>getRestaurantPhoneInput()</code></td></tr>
+      <tr><td></td><td><code>getRestaurantEmailInput()</code></td></tr>
+      <tr><td></td><td><code>getCuisineTypeInput()</code></td></tr>
+    </table>
+
+    <h3>Actions and messages</h3>
+    <table>
+      <tr><th>Method</th><th>Purpose</th></tr>
+      <tr><td><code>addCreateListener(ActionListener)</code></td><td>Registers the controller's Create action.</td></tr>
+      <tr><td><code>showMessage(String)</code></td><td>Displays controller feedback using a message dialog.</td></tr>
+      <tr><td><code>setOwnerFields(UserModel)</code></td><td>Copies a user's username, email, password, and phone into the owner form.</td></tr>
+    </table>
+
+    <h3>Existing-user picker</h3>
+    <table>
+      <tr><th>Method</th><th>Purpose</th></tr>
+      <tr><td><code>addShowUsersListener(ActionListener)</code></td><td>Registers work that runs before the user-picker dialog opens. Use it to refresh the list.</td></tr>
+      <tr><td><code>clearUsers()</code></td><td>Removes all current picker entries.</td></tr>
+      <tr><td><code>addUser(UserModel)</code></td><td>Adds one user to the picker. The picker displays the username.</td></tr>
+      <tr><td><code>getSelectedUser()</code></td><td>Returns the selected user, or <code>null</code>.</td></tr>
+    </table>
+
+    <div class="note">Show-user listeners execute in registration order and finish before the modal picker is displayed.</div>
+
+    <h3>Controller example</h3>
+    <pre>view.addShowUsersListener(event -&gt; {
+    view.clearUsers();
+    for (UserModel user : userService.getAllUsers()) {
+        view.addUser(user);
+    }
+});
+
+view.addCreateListener(event -&gt; {
+    UserModel user = new UserModel();
+    user.setUsername(view.getUsernameInput());
+    user.setUserEmail(view.getEmailInput());
+    user.setUserPassword(view.getPasswordInput());
+    user.setUserPhone(view.getPhoneInput());
+
+    StoreManagerModel restaurant = new StoreManagerModel();
+    restaurant.setName(view.getRestaurantNameInput());
+    restaurant.setAddress_line1(view.getAddressInput());
+    restaurant.setCity(view.getCityInput());
+    restaurant.setPostal_code(view.getPostalCodeInput());
+
+    // Call the service and translate its result into view.showMessage(...).
+});</pre>
+  </section>
+
+  <section class="page-break">
+    <h2>4. ShowRestaurantsView</h2>
+    <p>This view displays restaurants in an editable table. Each row ends with a three-dot menu containing Save Changes, Show More, and Remove.</p>
+
+    <h3>Data methods</h3>
+    <table>
+      <tr><th>Method</th><th>Purpose</th></tr>
+      <tr><td><code>setRestaurants(List&lt;StoreManagerModel&gt;)</code></td><td>Replaces the table contents. Passing <code>null</code> produces an empty table.</td></tr>
+      <tr><td><code>getRestaurants()</code></td><td>Returns a new list containing the current model objects.</td></tr>
+      <tr><td><code>getSelectedRestaurant()</code></td><td>Commits any active cell edit and returns the selected row's model, or <code>null</code>.</td></tr>
+    </table>
+
+    <p>Editable cells update the corresponding <code>StoreManagerModel</code> immediately. The list itself is copied, but the contained model objects are shared.</p>
+
+    <h3>Row action listeners</h3>
+    <table>
+      <tr><th>Method</th><th>Triggered by</th></tr>
+      <tr><td><code>addSaveChangesListener(ActionListener)</code></td><td>Save Changes in the selected row's menu.</td></tr>
+      <tr><td><code>addShowMoreListener(ActionListener)</code></td><td>Show More in the selected row's menu.</td></tr>
+      <tr><td><code>addRemoveListener(ActionListener)</code></td><td>Remove in the selected row's menu.</td></tr>
+      <tr><td><code>showMessage(String)</code></td><td>Controller feedback.</td></tr>
+    </table>
+
+    <h3>Read-only details dialog</h3>
+    <p><code>showRestaurantDetails(Component, StoreManagerModel)</code> displays every restaurant field in a scrollable application-modal dialog. The parent window is blocked until the dialog closes. The overload <code>showRestaurantDetails(StoreManagerModel)</code> creates the same dialog without a parent component.</p>
+
+    <h3>Controller example</h3>
+    <pre>view.setRestaurants(service.getAllRestaurants());
+
+view.addSaveChangesListener(event -&gt; {
+    StoreManagerModel selected = view.getSelectedRestaurant();
+    if (selected == null) return;
+    service.updateRestaurant(selected);
+    view.setRestaurants(service.getAllRestaurants());
+});
+
+view.addShowMoreListener(event -&gt; {
+    // Read selection BEFORE any refresh, because refreshing clears selection.
+    StoreManagerModel selected = view.getSelectedRestaurant();
+    ShowRestaurantsView.showRestaurantDetails(view, selected);
+});
+
+view.addRemoveListener(event -&gt; {
+    StoreManagerModel selected = view.getSelectedRestaurant();
+    if (selected == null) return;
+    service.deleteRestaurant(selected);
+    view.setRestaurants(service.getAllRestaurants());
+});</pre>
+  </section>
+
+  <section class="page-break">
+    <h2>5. ShowCustomersView</h2>
+    <p>This view displays a read-only customer table containing full name, city, state, postal code, and address. It reports a double-click but intentionally does not decide what response should occur.</p>
+
+    <table>
+      <tr><th>Method</th><th>Purpose</th></tr>
+      <tr><td><code>setCustomers(List&lt;CustomerModel&gt;)</code></td><td>Replaces all table rows.</td></tr>
+      <tr><td><code>getCustomers()</code></td><td>Returns a new list containing the displayed customer objects.</td></tr>
+      <tr><td><code>getSelectedCustomer()</code></td><td>Returns the selected customer's complete model, or <code>null</code>.</td></tr>
+      <tr><td><code>addCustomerDoubleClickListener(ActionListener)</code></td><td>Registers controller logic invoked after a customer row is double-clicked.</td></tr>
+    </table>
+
+    <h3>Controller example</h3>
+    <pre>view.setCustomers(customerService.getAllCustomers());
+
+view.addCustomerDoubleClickListener(event -&gt; {
+    CustomerModel selected = view.getSelectedCustomer();
+    if (selected == null) return;
+
+    // The controller decides how complete information is displayed.
+    // For example: open a modal customer-details dialog.
+});</pre>
+
+    <div class="note">The view does not automatically open a details dialog. This is intentional: it only supplies the selected model and event hook.</div>
+  </section>
+
+  <section class="page-break">
+    <h2>6. Window navigation and closing</h2>
+    <p>All four views use <code>JFrame.DISPOSE_ON_CLOSE</code>. A controller or application coordinator can restore the dashboard when a child view closes.</p>
+    <pre>childView.addWindowListener(new WindowAdapter() {
+    @Override
+    public void windowClosed(WindowEvent event) {
+        adminView.setVisible(true);
+    }
+});</pre>
+
+    <h2>7. Quick reference</h2>
+    <table>
+      <tr><th>View</th><th>Controller supplies</th><th>View reports</th></tr>
+      <tr><td><code>AdminView</code></td><td>Navigation listeners</td><td>Dashboard button clicks</td></tr>
+      <tr><td><code>CreateRestaurantView</code></td><td>User list, owner model, listeners</td><td>Form input and Create click</td></tr>
+      <tr><td><code>ShowRestaurantsView</code></td><td>Restaurant list and action listeners</td><td>Edited model, selected row, row-menu actions</td></tr>
+      <tr><td><code>ShowCustomersView</code></td><td>Customer list and double-click listener</td><td>Selected complete customer model</td></tr>
+    </table>
+  </section>
+</body>
+</html>
