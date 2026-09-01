@@ -19,7 +19,6 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -31,7 +30,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 
 import com.models.UserModel;
-public class CreateRestaurantView extends JFrame {
+public class CreateRestaurantView extends JPanel {
 
     private static final Color BACKGROUND = new Color(245, 247, 250);
     private static final Color CARD_BACKGROUND = Color.WHITE;
@@ -58,19 +57,19 @@ public class CreateRestaurantView extends JFrame {
     private final JButton useSelectedUserButton = new JButton("Use selected user");
     private final DefaultListModel<UserModel> userListModel = new DefaultListModel<>();
     private final JList<UserModel> userList = new JList<>(userListModel);
-    private final JDialog userListDialog = new JDialog(this, "Select a user", true);
+    private final JDialog userListDialog = new JDialog(
+            (java.awt.Window) null,
+            "Select a user",
+            java.awt.Dialog.ModalityType.APPLICATION_MODAL);
     private final List<ActionListener> showUsersListeners = new ArrayList<>();
 
     public CreateRestaurantView() {
-        setTitle("Admin - Create Restaurant Owner");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setMinimumSize(new Dimension(760, 470));
-        setLocationByPlatform(true);
+        super(new BorderLayout());
+        setBackground(BACKGROUND);
 
-        JPanel root = new JPanel(new BorderLayout(0, 22));
-        root.setBackground(BACKGROUND);
-        root.setBorder(BorderFactory.createEmptyBorder(26, 30, 28, 30));
-        setContentPane(root);
+        JPanel formContent = new JPanel(new BorderLayout(0, 22));
+        formContent.setBackground(BACKGROUND);
+        formContent.setBorder(BorderFactory.createEmptyBorder(26, 30, 28, 30));
 
         JPanel heading = new JPanel(new BorderLayout(0, 5));
         heading.setOpaque(false);
@@ -85,7 +84,7 @@ public class CreateRestaurantView extends JFrame {
 
         heading.add(title, BorderLayout.NORTH);
         heading.add(subtitle, BorderLayout.SOUTH);
-        root.add(heading, BorderLayout.NORTH);
+        formContent.add(heading, BorderLayout.NORTH);
 
         JPanel forms = new JPanel(new GridLayout(1, 2, 18, 0));
         forms.setOpaque(false);
@@ -108,7 +107,7 @@ public class CreateRestaurantView extends JFrame {
 
         forms.add(ownerPanel);
         forms.add(restaurantPanel);
-        root.add(forms, BorderLayout.CENTER);
+        formContent.add(forms, BorderLayout.CENTER);
 
         createButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         createButton.setForeground(Color.WHITE);
@@ -120,12 +119,19 @@ public class CreateRestaurantView extends JFrame {
         JPanel actions = new JPanel(new BorderLayout());
         actions.setOpaque(false);
         actions.add(createButton, BorderLayout.EAST);
-        root.add(actions, BorderLayout.SOUTH);
+        formContent.add(actions, BorderLayout.SOUTH);
 
-        getRootPane().setDefaultButton(createButton);
+        JScrollPane formScrollPane = new JScrollPane(
+                formContent,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        formScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        formScrollPane.getViewport().setBackground(BACKGROUND);
+        formScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        formScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        add(formScrollPane, BorderLayout.CENTER);
+
         configureUserListDialog();
-        pack();
-        setLocationRelativeTo(null);
     }
 
     private void configureUserListDialog() {

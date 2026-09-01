@@ -14,8 +14,7 @@ import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.HierarchyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -24,7 +23,6 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -38,7 +36,7 @@ import javax.swing.table.JTableHeader;
 import com.models.CustomerModel;
 import com.models.UserModel;
 
-public class ShowCustomersView extends JFrame {
+public class ShowCustomersView extends JPanel {
 
     private static final Color BACKGROUND = new Color(245, 247, 250);
     private static final Color CARD_BACKGROUND = Color.WHITE;
@@ -50,17 +48,11 @@ public class ShowCustomersView extends JFrame {
     private final JTable customerTable = new JTable(tableModel);
     private final JButton refreshButton = new JButton("Refresh");
     private final List<ActionListener> customerDoubleClickListeners = new ArrayList<>();
-    private final List<ActionListener> viewShownListeners = new ArrayList<>();
 
     public ShowCustomersView() {
-        setTitle("Admin - Customers");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setMinimumSize(new Dimension(900, 520));
-
-        JPanel root = new JPanel(new BorderLayout(0, 20));
-        root.setBackground(BACKGROUND);
-        root.setBorder(BorderFactory.createEmptyBorder(26, 30, 28, 30));
-        setContentPane(root);
+        super(new BorderLayout(0, 20));
+        setBackground(BACKGROUND);
+        setBorder(BorderFactory.createEmptyBorder(26, 30, 28, 30));
 
         JPanel heading = new JPanel(new BorderLayout(0, 5));
         heading.setOpaque(false);
@@ -75,7 +67,7 @@ public class ShowCustomersView extends JFrame {
 
         heading.add(title, BorderLayout.NORTH);
         heading.add(subtitle, BorderLayout.SOUTH);
-        root.add(heading, BorderLayout.NORTH);
+        add(heading, BorderLayout.NORTH);
 
         configureTable();
 
@@ -83,7 +75,7 @@ public class ShowCustomersView extends JFrame {
         tableScrollPane.setBackground(CARD_BACKGROUND);
         tableScrollPane.getViewport().setBackground(CARD_BACKGROUND);
         tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(225, 229, 235)));
-        root.add(tableScrollPane, BorderLayout.CENTER);
+        add(tableScrollPane, BorderLayout.CENTER);
 
         refreshButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         refreshButton.setForeground(Color.WHITE);
@@ -95,17 +87,14 @@ public class ShowCustomersView extends JFrame {
         JPanel actions = new JPanel(new BorderLayout());
         actions.setOpaque(false);
         actions.add(refreshButton, BorderLayout.EAST);
-        root.add(actions, BorderLayout.SOUTH);
+        add(actions, BorderLayout.SOUTH);
 
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentShown(ComponentEvent event) {
-                notifyViewShownListeners();
+        addHierarchyListener(event -> {
+            if ((event.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0
+                    && isShowing()) {
+                notifyRefreshListeners();
             }
         });
-
-        pack();
-        setLocationRelativeTo(null);
     }
 
     private void configureTable() {
@@ -169,14 +158,10 @@ public class ShowCustomersView extends JFrame {
         }
     }
 
-    public void addViewShownListener(ActionListener listener) {
-        if (listener != null) {
-            viewShownListeners.add(listener);
-        }
-    }
-
     public void addRefreshListener(ActionListener listener) {
-        refreshButton.addActionListener(listener);
+        if (listener != null) {
+            refreshButton.addActionListener(listener);
+        }
     }
 
     public static void showCustomerDetails(
@@ -324,13 +309,13 @@ public class ShowCustomersView extends JFrame {
         }
     }
 
-    private void notifyViewShownListeners() {
+    private void notifyRefreshListeners() {
         ActionEvent event = new ActionEvent(
-                this,
+                refreshButton,
                 ActionEvent.ACTION_PERFORMED,
-                "viewShown");
+                "refresh");
 
-        for (ActionListener listener : new ArrayList<>(viewShownListeners)) {
+        for (ActionListener listener : refreshButton.getActionListeners()) {
             listener.actionPerformed(event);
         }
     }

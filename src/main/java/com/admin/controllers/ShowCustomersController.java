@@ -16,9 +16,6 @@ public class ShowCustomersController{
         this.view = view;
         this.service = service;
 
-        this.view.addViewShownListener(event ->{
-            this.view.setCustomers(this.service.getAllCustomers());
-        });
         this.view.addRefreshListener(event -> {
             this.view.setCustomers(this.service.getAllCustomers());
         });

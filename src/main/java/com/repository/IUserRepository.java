@@ -4,7 +4,7 @@ import java.util.List;
 import com.ErrorCodes;
 import com.models.UserModel;
 /**
- * @author Dimitris Smyrnakis
+ * 
  * @version 1.0
  * @brief The user repository interface for accessing user model data
  * from io . 

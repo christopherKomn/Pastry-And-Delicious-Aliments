@@ -2,40 +2,42 @@ package com.admin.views;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class AdminView extends JFrame {
 
     private static final Color BACKGROUND = new Color(245, 247, 250);
-    private static final Color CARD_BACKGROUND = Color.WHITE;
-    private static final Color ACCENT = new Color(196, 92, 62);
     private static final Color TEXT_PRIMARY = new Color(45, 50, 58);
     private static final Color TEXT_SECONDARY = new Color(105, 112, 122);
 
-    private final JButton createRestaurantButton = new JButton("Create Restaurant");
-    private final JButton showRestaurantsButton = new JButton("Show Restaurants");
-    private final JButton showCustomersButton = new JButton("Show Customers");
+    private final JMenuItem createRestaurantItem = new JMenuItem("Restaurant");
+    private final JMenuItem showRestaurantsItem = new JMenuItem("Restaurants");
+    private final JMenuItem showCustomersItem = new JMenuItem("Customers");
+    private final JMenuItem showProfileItem = new JMenuItem("Show");
+    private final JMenuItem logoutItem = new JMenuItem("Log out");
+    private final JPanel contentPanel = new JPanel(new BorderLayout());
 
     public AdminView() {
         setTitle("Pastry Admin");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setMinimumSize(new Dimension(650, 390));
+        setMinimumSize(new Dimension(900, 550));
+        setSize(new Dimension(1100, 700));
+        setJMenuBar(createMenuBar());
 
-        JPanel root = new JPanel(new BorderLayout(0, 24));
-        root.setBackground(BACKGROUND);
-        root.setBorder(BorderFactory.createEmptyBorder(34, 38, 38, 38));
-        setContentPane(root);
+        contentPanel.setBackground(BACKGROUND);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(34, 38, 38, 38));
+        setContentPane(contentPanel);
 
         JPanel heading = new JPanel(new BorderLayout(0, 6));
         heading.setOpaque(false);
@@ -50,56 +52,60 @@ public class AdminView extends JFrame {
 
         heading.add(title, BorderLayout.NORTH);
         heading.add(subtitle, BorderLayout.SOUTH);
-        root.add(heading, BorderLayout.NORTH);
+        showPanel(heading);
 
-        JPanel menuCard = new JPanel(new GridLayout(3, 1, 0, 14));
-        menuCard.setBackground(CARD_BACKGROUND);
-        menuCard.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(225, 229, 235)),
-                BorderFactory.createEmptyBorder(25, 30, 25, 30)));
-
-        styleActiveButton(createRestaurantButton);
-        styleActiveButton(showRestaurantsButton);
-        styleActiveButton(showCustomersButton);
-
-        showRestaurantsButton.setEnabled(true);
-        showCustomersButton.setEnabled(true);
-
-        menuCard.add(createRestaurantButton);
-        menuCard.add(showRestaurantsButton);
-        menuCard.add(showCustomersButton);
-        root.add(menuCard, BorderLayout.CENTER);
-
-        pack();
         setLocationRelativeTo(null);
     }
 
-    private void styleActiveButton(JButton button) {
-        button.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
-        button.setForeground(Color.WHITE);
-        button.setBackground(ACCENT);
-        button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createEmptyBorder(13, 18, 13, 18));
+    private JMenuBar createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu createMenu = new JMenu("Create");
+        createMenu.add(createRestaurantItem);
+
+        JMenu showMenu = new JMenu("Show");
+        showMenu.add(showRestaurantsItem);
+        showMenu.add(showCustomersItem);
+
+        JMenu profileMenu = new JMenu("Profile");
+        profileMenu.add(showProfileItem);
+        profileMenu.addSeparator();
+        profileMenu.add(logoutItem);
+
+        menuBar.add(createMenu);
+        menuBar.add(showMenu);
+        menuBar.add(profileMenu);
+        return menuBar;
     }
 
-    private void styleDisabledButton(JButton button) {
-        button.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
-        button.setForeground(new Color(145, 150, 158));
-        button.setBackground(new Color(235, 237, 241));
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(13, 18, 13, 18));
+    public void showPanel(JPanel panel) {
+        if (panel == null) {
+            throw new IllegalArgumentException("Panel cannot be null.");
+        }
+
+        contentPanel.removeAll();
+        contentPanel.add(panel, BorderLayout.CENTER);
+        contentPanel.revalidate();
+        contentPanel.repaint();
     }
 
     public void addCreateRestaurantListener(ActionListener listener) {
-        createRestaurantButton.addActionListener(listener);
+        createRestaurantItem.addActionListener(listener);
     }
 
     public void addShowRestaurantsListener(ActionListener listener) {
-        showRestaurantsButton.addActionListener(listener);
+        showRestaurantsItem.addActionListener(listener);
     }
 
     public void addShowCustomersListener(ActionListener listener){
-        showCustomersButton.addActionListener(listener);
+        showCustomersItem.addActionListener(listener);
+    }
+
+    public void addShowProfileListener(ActionListener listener) {
+        showProfileItem.addActionListener(listener);
+    }
+
+    public void addLogoutListener(ActionListener listener) {
+        logoutItem.addActionListener(listener);
     }
 }

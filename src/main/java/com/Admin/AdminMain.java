@@ -1,18 +1,25 @@
 package com.admin;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.sql.Connection;
 
 import javax.swing.SwingUtilities;
 
-import com.admin.controllers.*;
-import com.admin.services.*;
-import com.admin.views.*;
-import com.repository.*;
-import com.models.*;
-
-import java.util.List;
+import com.admin.controllers.CreateRestaurantController;
+import com.admin.controllers.ShowCustomersController;
+import com.admin.controllers.ShowRestaurantsController;
+import com.admin.services.CreateRestaurant;
+import com.admin.services.ShowCustomersService;
+import com.admin.services.ShowRestaurantService;
+import com.admin.views.AdminView;
+import com.admin.views.CreateRestaurantView;
+import com.admin.views.ShowCustomersView;
+import com.admin.views.ShowRestaurantsView;
+import com.repository.DBCustomerRepository;
+import com.repository.DBStoreManagerRepository;
+import com.repository.DBUserRepository;
+import com.repository.ICustomerRepository;
+import com.repository.IStoreManagerRepository;
+import com.repository.IUserRepository;
 
 public class AdminMain {
     public static void AMain(String[] args ,Connection dbConnection) {
@@ -75,51 +82,21 @@ public class AdminMain {
                     new ShowCustomersController(showCustomersService , showCustomersView);
             
 
-            // Window views close listeners
-            createRestaurantView.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosed(WindowEvent event) {
-                        // Runs after the JFrame has been disposed.
-                        adminView.setVisible(true);
-                    }
-                });
-            showRestaurantsView.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosed(WindowEvent event) {
-                        // Runs after the JFrame has been disposed.
-                        adminView.setVisible(true);
-                    }
-                });
-            showCustomersView.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosed(WindowEvent event) {
-                        // Runs after the JFrame has been disposed.
-                        adminView.setVisible(true);
-                    }
-                });
-
-
-            // admin buttons action listeners
+            // Admin menu action listeners
             adminView.addCreateRestaurantListener(event -> {
-                
-
-                createRestaurantView.setVisible(true);
-                adminView.setVisible(false);
+                adminView.showPanel(createRestaurantView);
             });
 
             adminView.addShowRestaurantsListener(event -> {
-                
-
-                showRestaurantsView.setVisible(true);
                 showRestaurantsController.RefreshRestaurantList();
-                adminView.setVisible(false);
+                adminView.showPanel(showRestaurantsView);
+            });
+
+            adminView.addShowCustomersListener(event -> {
+                adminView.showPanel(showCustomersView);
             });
 
             
-            adminView.addShowCustomersListener(event -> {
-                showCustomersView.setVisible(true);
-                adminView.setVisible(false);
-            });
 
             adminView.setVisible(true);
         });

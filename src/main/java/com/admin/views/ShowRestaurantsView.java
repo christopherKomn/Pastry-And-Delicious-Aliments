@@ -19,7 +19,6 @@ import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -37,7 +36,7 @@ import javax.swing.table.TableCellRenderer;
 
 import com.models.StoreManagerModel;
 
-public class ShowRestaurantsView extends JFrame {
+public class ShowRestaurantsView extends JPanel {
 
     private static final Color BACKGROUND = new Color(245, 247, 250);
     private static final Color CARD_BACKGROUND = Color.WHITE;
@@ -52,14 +51,9 @@ public class ShowRestaurantsView extends JFrame {
     private final JMenuItem removeItem = new JMenuItem("Remove");
 
     public ShowRestaurantsView() {
-        setTitle("Admin - Restaurants");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setMinimumSize(new Dimension(1050, 560));
-
-        JPanel root = new JPanel(new BorderLayout(0, 20));
-        root.setBackground(BACKGROUND);
-        root.setBorder(BorderFactory.createEmptyBorder(26, 30, 28, 30));
-        setContentPane(root);
+        super(new BorderLayout(0, 20));
+        setBackground(BACKGROUND);
+        setBorder(BorderFactory.createEmptyBorder(26, 30, 28, 30));
 
         JPanel heading = new JPanel(new BorderLayout(0, 5));
         heading.setOpaque(false);
@@ -74,7 +68,7 @@ public class ShowRestaurantsView extends JFrame {
 
         heading.add(title, BorderLayout.NORTH);
         heading.add(subtitle, BorderLayout.SOUTH);
-        root.add(heading, BorderLayout.NORTH);
+        add(heading, BorderLayout.NORTH);
 
         configureTable();
 
@@ -82,10 +76,7 @@ public class ShowRestaurantsView extends JFrame {
         tableScrollPane.setBackground(CARD_BACKGROUND);
         tableScrollPane.getViewport().setBackground(CARD_BACKGROUND);
         tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(225, 229, 235)));
-        root.add(tableScrollPane, BorderLayout.CENTER);
-
-        pack();
-        setLocationRelativeTo(null);
+        add(tableScrollPane, BorderLayout.CENTER);
     }
 
     private void configureTable() {
