@@ -149,7 +149,6 @@ CREATE TABLE orders (
         'wallet',
         'paypal'
     ) NOT NULL,
-    payment_intent_id VARCHAR(255),
     special_instructions TEXT,
     actual_delivery_time TIMESTAMP NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -180,9 +179,7 @@ CREATE TABLE order_items (
     id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT NOT NULL,
     menu_item_id INT NOT NULL,
-    item_name VARCHAR(255) NOT NULL,
     quantity INT NOT NULL,
-    unit_price DECIMAL(10, 2) NOT NULL,
     total_price DECIMAL(10, 2) NOT NULL,
     special_instructions TEXT,
     selected_options JSON,
