@@ -13,7 +13,6 @@ public class OrderModel {
     private BigDecimal discount_amount;
     private BigDecimal total_amount;
     private String payment_method;
-    private String payment_intent_id;
     private String special_instructions;
     private Timestamp actual_delivery_time;
     private Timestamp created_at;
@@ -28,7 +27,7 @@ public class OrderModel {
 
     public OrderModel(int id, int customer_id, int restaurant_id, String status,
             BigDecimal subtotal, BigDecimal discount_amount, BigDecimal total_amount,
-            String payment_method, String payment_intent_id, String special_instructions,
+            String payment_method, String special_instructions,
             Timestamp actual_delivery_time, Timestamp created_at, Timestamp updated_at,
             Timestamp confirmed_at, Timestamp prepared_at, Timestamp picked_up_at,
             Timestamp delivered_at) {
@@ -40,7 +39,6 @@ public class OrderModel {
         this.discount_amount = discount_amount;
         this.total_amount = total_amount;
         this.payment_method = payment_method;
-        this.payment_intent_id = payment_intent_id;
         this.special_instructions = special_instructions;
         this.actual_delivery_time = copyTimestamp(actual_delivery_time);
         this.created_at = copyTimestamp(created_at);
@@ -60,7 +58,6 @@ public class OrderModel {
         this.discount_amount = other.discount_amount;
         this.total_amount = other.total_amount;
         this.payment_method = other.payment_method;
-        this.payment_intent_id = other.payment_intent_id;
         this.special_instructions = other.special_instructions;
         this.actual_delivery_time = copyTimestamp(other.actual_delivery_time);
         this.created_at = copyTimestamp(other.created_at);
@@ -133,14 +130,6 @@ public class OrderModel {
 
     public void setPayment_method(String payment_method) {
         this.payment_method = payment_method;
-    }
-
-    public String getPayment_intent_id() {
-        return payment_intent_id;
-    }
-
-    public void setPayment_intent_id(String payment_intent_id) {
-        this.payment_intent_id = payment_intent_id;
     }
 
     public String getSpecial_instructions() {

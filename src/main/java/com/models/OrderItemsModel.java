@@ -6,13 +6,10 @@ import java.util.Map;
 
 public class OrderItemsModel {
 
-private int id;
+    private int id;
     private int order_id;
     private int menu_item_id;
-    private String item_name;
     private int quantity;
-    private float unit_price;
-    private float total_price;
     private String special_instructions;
     private String selected_options;
     private Map<String, Object> selectedOptionsMap;
@@ -23,16 +20,12 @@ private int id;
         this.selectedOptionsMap = new HashMap<>();
     }
 
-    public OrderItemsModel(int id, int order_id, int menu_item_id, String item_name, 
-                    int quantity, float unit_price, float total_price, 
-                    String special_instructions, String selected_options) {
+    public OrderItemsModel(int id, int order_id, int menu_item_id, 
+                    int quantity, String special_instructions, String selected_options) {
         this.id = id;
         this.order_id = order_id;
         this.menu_item_id = menu_item_id;
-        this.item_name = item_name;
         this.quantity = quantity;
-        this.unit_price = unit_price;
-        this.total_price = total_price;
         this.special_instructions = special_instructions;
         this.selected_options = selected_options;
         this.selectedOptionsMap = new HashMap<>();
@@ -42,10 +35,7 @@ private int id;
         this.id = other.id;
         this.order_id = other.order_id;
         this.menu_item_id =other. menu_item_id;
-        this.item_name = other.item_name;
         this.quantity = other.quantity;
-        this.unit_price = other.unit_price;
-        this.total_price = other.total_price;
         this.special_instructions = other.special_instructions;
         this.selected_options = other.selected_options;
         this.selectedOptionsMap = other.selectedOptionsMap;
@@ -75,36 +65,12 @@ private int id;
         this.menu_item_id = menu_item_id;
     }
 
-    public String getItem_name() {
-        return item_name;
-    }
-
-    public void setItem_name(String item_name) {
-        this.item_name = item_name;
-    }
-
     public int getQuantity() {
         return quantity;
     }
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
-    }
-
-    public float getUnit_price() {
-        return unit_price;
-    }
-
-    public void setUnit_price(float unit_price) {
-        this.unit_price = unit_price;
-    }
-
-    public float getTotal_price() {
-        return total_price;
-    }
-
-    public void setTotal_price(float total_price) {
-        this.total_price = total_price;
     }
 
     public String getSpecial_instructions() {
