@@ -1,7 +1,10 @@
 package com.repository;
 
+import java.util.List;
+
 import com.ErrorCodes;
 import com.models.CustomerModel;
+import com.models.OrderItemsModel;
 import com.models.OrderModel;
 import com.models.StoreManagerModel;
 /**
@@ -62,5 +65,32 @@ public interface IOrderRepository {
         StoreManagerModel restaurant
     );
 
-    
+    /**
+     * @brief Find all orders associated with a specific customer ID
+     * @param customerId The ID of the customer to find orders for
+     * @return A list of orders associated with the customer
+     */
+    List<OrderModel> findByCustomerId(Long customerId);
+
+    /**
+     * @brief Find all orders associated with a specific restaurant ID
+     * @param restaurantId The ID of the restaurant to find orders for
+     * @return A list of orders associated with the restaurant
+     */
+    List<OrderModel> findByRestaurantId(Long restaurantId);
+
+    /**
+     * @brief Find all order items associated with a specific order ID
+     * @param orderId The ID of the order to find items for
+     * @return A list of order items associated with the order
+     */
+    List<OrderItemsModel> findAllOrderItemsByOrderId(Long orderId);
+
+    /**
+     * @brief Find all orders in the repository
+     * @return A list of all orders
+     */
+    List<OrderModel> findAll();
+
+
 }
