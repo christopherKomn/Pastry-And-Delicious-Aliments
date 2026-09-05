@@ -190,10 +190,6 @@ CREATE TABLE order_items (
         ON DELETE CASCADE,
     CONSTRAINT chk_order_item_quantity
         CHECK (quantity > 0),
-    CONSTRAINT chk_order_item_unit_price
-        CHECK (unit_price >= 0.00),
-    CONSTRAINT chk_order_item_total_price
-        CHECK (total_price >= 0.00),
     INDEX idx_order_items_order (order_id),
     INDEX idx_order_items_menu_item (menu_item_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

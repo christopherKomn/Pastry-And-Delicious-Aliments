@@ -54,6 +54,12 @@ public interface IUserRepository {
     UserModel findByUsername(String username);
 
     
-
+    /**
+     * @brief Finds a user by their username and password.
+     * @param username The username of the user to find.
+     * @param password The password of the user to find.
+     * @return The UserModel object representing the user, or null if not found.
+     */
+    UserModel findByUsernameAndPassword(String username, String password);
     
 };

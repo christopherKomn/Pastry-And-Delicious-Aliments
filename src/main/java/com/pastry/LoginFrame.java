@@ -5,9 +5,6 @@ import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -19,11 +16,15 @@ import javax.swing.JTextField;
 
 import com.admin.AdminMain;
 import com.customer.CustomerMain;
+import com.models.UserModel;
+import com.repository.DBUserRepository;
+import com.repository.IUserRepository;
 import com.store_manager.StoreManagerMain;
 
 public class LoginFrame extends JFrame {
     private final Connection dbConnection;
     private final String[] applicationArgs;
+    private final IUserRepository userRepository;
     private final JTextField usernameField = new JTextField();
     private final JPasswordField passwordField = new JPasswordField();
 
@@ -31,6 +32,7 @@ public class LoginFrame extends JFrame {
         super("Pastry login");
         this.dbConnection = dbConnection;
         this.applicationArgs = applicationArgs;
+        this.userRepository = new DBUserRepository(dbConnection);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(320, 160);
         setLocationRelativeTo(null);
@@ -65,30 +67,29 @@ public class LoginFrame extends JFrame {
             return;
         }
 
-        String query = "SELECT user_type FROM users WHERE username = ? AND password = ?";
-        try (PreparedStatement statement = dbConnection.prepareStatement(query)) {
-            statement.setString(1, username);
-            statement.setString(2, password);
-            try (ResultSet result = statement.executeQuery()) {
-                if (!result.next()) {
-                    JOptionPane.showMessageDialog(this, "Invalid username or password.");
-                    return;
-                }
-                dispatch(result.getString("user_type"));
+        try {
+            UserModel user = userRepository.findByUsernameAndPassword(username, password);
+            if (user == null) {
+                JOptionPane.showMessageDialog(this, "Invalid username or password.");
+                return;
             }
-        } catch (SQLException exception) {
+
+            dispatch(user);
+        } catch (RuntimeException exception) {
             JOptionPane.showMessageDialog(this, "Login failed: " + exception.getMessage());
         }
     }
 
-    private void dispatch(String userType) {
+    private void dispatch(UserModel user) {
         setVisible(false);
         try {
-            switch (userType) {
-                case "admin" -> AdminMain.AMain(applicationArgs, dbConnection);
-                case "restaurant_owner" -> StoreManagerMain.SMMain(applicationArgs, dbConnection);
-                case "customer" -> CustomerMain.CMain(applicationArgs, dbConnection);
-                default -> JOptionPane.showMessageDialog(null, "Unknown user role: " + userType);
+            switch (user.getUser_type()) {
+                case "admin" -> AdminMain.AMain(applicationArgs, dbConnection, user);
+                case "restaurant_owner" -> StoreManagerMain.SMMain(applicationArgs, dbConnection, user);
+                case "customer" -> CustomerMain.CMain(applicationArgs, dbConnection, user);
+                default -> JOptionPane.showMessageDialog(
+                        null,
+                        "Unknown user role: " + user.getUser_type());
             }
         } finally {
             

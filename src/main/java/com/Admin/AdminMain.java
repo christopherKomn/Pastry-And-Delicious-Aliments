@@ -3,7 +3,7 @@ package com.admin;
 import java.sql.Connection;
 
 import javax.swing.SwingUtilities;
-
+import com.models.*;
 import com.admin.controllers.CreateRestaurantController;
 import com.admin.controllers.ShowCustomersController;
 import com.admin.controllers.ShowRestaurantsController;
@@ -22,7 +22,7 @@ import com.repository.IStoreManagerRepository;
 import com.repository.IUserRepository;
 
 public class AdminMain {
-    public static void AMain(String[] args ,Connection dbConnection) {
+    public static void AMain(String[] args ,Connection dbConnection , UserModel user) {
         System.out.println("Hello, Admin!");
         // check if the database connection is valid
         try {

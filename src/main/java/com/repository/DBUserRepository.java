@@ -150,6 +150,22 @@ public class DBUserRepository implements IUserRepository {
         }
     }
 
+    @Override
+    public UserModel findByUsernameAndPassword(String username, String password) {
+        String sql = "SELECT " + SELECT_COLUMNS + " FROM users WHERE username = ? AND password = ?";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, username);
+            statement.setString(2, password);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? mapUser(resultSet) : null;
+            }
+        } catch (SQLException exception) {
+            throw databaseException("find user by username and password", exception);
+        }
+    }
+
     
 
     private RuntimeException databaseException(String operation, SQLException exception) {
