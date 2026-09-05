@@ -2,10 +2,10 @@ package com.admin.controllers;
 
 import java.util.List;
 
+import com.ErrorCodes;
 import com.admin.services.ShowRestaurantService;
 import com.admin.views.ShowRestaurantsView;
 import com.models.StoreManagerModel;
-import com.ErrorCodes;
 public class ShowRestaurantsController {
 
     private final ShowRestaurantService service;
@@ -19,14 +19,43 @@ public class ShowRestaurantsController {
 
         view.addSaveChangesListener(event -> {
             saveRestaurant();
+            view.setSaveAllEnabled(service.getChangedRestaurants().isEmpty() == false);
         });
 
         view.addShowMoreListener(event -> {
             showMore();
+            view.setSaveAllEnabled(service.getChangedRestaurants().isEmpty() == false);
         });
 
         view.addRemoveListener(event -> {
             RemoveRestaurant();
+            view.setSaveAllEnabled(service.getChangedRestaurants().isEmpty() == false);
+        });
+
+        view.addViewShownListener(event -> {
+            RefreshRestaurantList();
+            service.clearChangedRestaurants();
+            view.setSaveAllEnabled(service.getChangedRestaurants().isEmpty() == false);
+        });
+
+        view.addRefreshListener(event -> {
+            RefreshRestaurantList();
+            service.clearChangedRestaurants();
+            view.setSaveAllEnabled(service.getChangedRestaurants().isEmpty() == false);
+        });
+
+        view.addSaveAllListener( event -> {
+            if (service.getChangedRestaurants().isEmpty() == false){
+                // to implemented in the future 
+                service.saveChangedRestaurants();
+                view.showMessage("All changes saved successfully.");
+            }
+            view.setSaveAllEnabled(service.getChangedRestaurants().isEmpty() == false);
+        });
+
+        view.addRestaurantItemChangeListener(restaurant -> {
+            service.AddChangedRestaurant(restaurant);
+            view.setSaveAllEnabled(service.getChangedRestaurants().isEmpty() == false);
         });
     }
 
@@ -51,14 +80,17 @@ public class ShowRestaurantsController {
                 view.showMessage("Restaurant not found.");
 
         }
-        RefreshRestaurantList(); 
+        service.RemoveChangedRestaurant(restaurant); 
     }
 
     public void showMore(){
         
         StoreManagerModel restaurant = view.getSelectedRestaurant();
         ShowRestaurantsView.showRestaurantDetails(view, restaurant);
-        RefreshRestaurantList();
+        
+        
+        service.AddChangedRestaurant(restaurant);
+        
     }
 
     public void saveRestaurant(){
@@ -78,7 +110,7 @@ public class ShowRestaurantsController {
                 view.showMessage("Restaurant not found.");
 
         }
-        RefreshRestaurantList();
+        service.RemoveChangedRestaurant(restaurant);
     }
 
     public void RefreshRestaurantList() {

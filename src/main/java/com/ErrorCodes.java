@@ -9,5 +9,6 @@ public enum ErrorCodes {
     FAILED_TO_WRITE,
     BAD_TYPE ,
     UNMATCHED_IDS,
+    NULL_VALUE,
     SUCCESS
 };

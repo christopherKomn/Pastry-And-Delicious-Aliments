@@ -6,19 +6,27 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.RenderingHints;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.HierarchyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -38,6 +46,11 @@ import com.models.StoreManagerModel;
 
 public class ShowRestaurantsView extends JPanel {
 
+    @FunctionalInterface
+    public interface RestaurantItemChangeListener {
+        void restaurantItemChanged(StoreManagerModel restaurant);
+    }
+
     private static final Color BACKGROUND = new Color(245, 247, 250);
     private static final Color CARD_BACKGROUND = Color.WHITE;
     private static final Color ACCENT = new Color(196, 92, 62);
@@ -49,6 +62,11 @@ public class ShowRestaurantsView extends JPanel {
     private final JMenuItem saveChangesItem = new JMenuItem("Save Changes");
     private final JMenuItem showMoreItem = new JMenuItem("Show More");
     private final JMenuItem removeItem = new JMenuItem("Remove");
+    private final JButton refreshButton = new JButton("\u21BB");
+    private final JButton saveAllButton = new JButton();
+    private final List<ActionListener> viewShownListeners = new ArrayList<>();
+    private final List<RestaurantItemChangeListener> restaurantItemChangeListeners =
+            new ArrayList<>();
 
     public ShowRestaurantsView() {
         super(new BorderLayout(0, 20));
@@ -66,8 +84,32 @@ public class ShowRestaurantsView extends JPanel {
         subtitle.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
         subtitle.setForeground(TEXT_SECONDARY);
 
+        refreshButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+        refreshButton.setForeground(TEXT_PRIMARY);
+        refreshButton.setBackground(CARD_BACKGROUND);
+        refreshButton.setFocusPainted(false);
+        refreshButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        refreshButton.setPreferredSize(new Dimension(42, 36));
+        refreshButton.setToolTipText("Refresh restaurants");
+        refreshButton.getAccessibleContext().setAccessibleName("Refresh restaurants");
+        refreshButton.setBorder(BorderFactory.createLineBorder(new Color(210, 215, 222)));
+
+        saveAllButton.setFocusPainted(false);
+        saveAllButton.setOpaque(true);
+        saveAllButton.setContentAreaFilled(true);
+        saveAllButton.setPreferredSize(new Dimension(42, 36));
+        saveAllButton.setToolTipText("Save all restaurant changes");
+        saveAllButton.getAccessibleContext().setAccessibleName("Save all restaurant changes");
+        setSaveAllEnabled(true);
+
+        JPanel headingActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        headingActions.setOpaque(false);
+        headingActions.add(refreshButton);
+        headingActions.add(saveAllButton);
+
         heading.add(title, BorderLayout.NORTH);
         heading.add(subtitle, BorderLayout.SOUTH);
+        heading.add(headingActions, BorderLayout.EAST);
         add(heading, BorderLayout.NORTH);
 
         configureTable();
@@ -77,6 +119,13 @@ public class ShowRestaurantsView extends JPanel {
         tableScrollPane.getViewport().setBackground(CARD_BACKGROUND);
         tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(225, 229, 235)));
         add(tableScrollPane, BorderLayout.CENTER);
+
+        addHierarchyListener(event -> {
+            if ((event.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0
+                    && isShowing()) {
+                notifyViewShownListeners();
+            }
+        });
     }
 
     private void configureTable() {
@@ -134,6 +183,65 @@ public class ShowRestaurantsView extends JPanel {
 
     public void addRemoveListener(ActionListener listener) {
         removeItem.addActionListener(listener);
+    }
+
+    public void addRefreshListener(ActionListener listener) {
+        if (listener != null) {
+            refreshButton.addActionListener(listener);
+        }
+    }
+
+    public void addSaveAllListener(ActionListener listener) {
+        if (listener != null) {
+            saveAllButton.addActionListener(listener);
+        }
+    }
+
+    public void setSaveAllEnabled(boolean enabled) {
+        Color inactiveIcon = new Color(155, 160, 168);
+
+        saveAllButton.setEnabled(enabled);
+        saveAllButton.setBackground(enabled
+                ? Color.WHITE
+                : new Color(232, 235, 239));
+        saveAllButton.setIcon(new SaveAllIcon(enabled ? TEXT_PRIMARY : inactiveIcon));
+        saveAllButton.setDisabledIcon(new SaveAllIcon(inactiveIcon));
+        saveAllButton.setBorder(BorderFactory.createLineBorder(enabled
+                ? new Color(200, 205, 212)
+                : new Color(220, 224, 229)));
+        saveAllButton.setCursor(enabled
+                ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+                : Cursor.getDefaultCursor());
+    }
+
+    public void addRestaurantItemChangeListener(RestaurantItemChangeListener listener) {
+        if (listener != null) {
+            restaurantItemChangeListeners.add(listener);
+        }
+    }
+
+    public void addViewShownListener(ActionListener listener) {
+        if (listener != null) {
+            viewShownListeners.add(listener);
+        }
+    }
+
+    private void notifyViewShownListeners() {
+        ActionEvent event = new ActionEvent(
+                this,
+                ActionEvent.ACTION_PERFORMED,
+                "viewShown");
+
+        for (ActionListener listener : new ArrayList<>(viewShownListeners)) {
+            listener.actionPerformed(event);
+        }
+    }
+
+    private void notifyRestaurantItemChangeListeners(StoreManagerModel restaurant) {
+        for (RestaurantItemChangeListener listener
+                : new ArrayList<>(restaurantItemChangeListeners)) {
+            listener.restaurantItemChanged(restaurant);
+        }
     }
 
     public static void showRestaurantDetails(Component parent, StoreManagerModel restaurant) {
@@ -261,7 +369,7 @@ public class ShowRestaurantsView extends JPanel {
         }
     }
 
-    private static final class RestaurantTableModel extends AbstractTableModel {
+    private final class RestaurantTableModel extends AbstractTableModel {
 
         private static final String[] COLUMN_NAMES = {
                 "Name", "Address", "City", "Postal Code", "Cuisine",
@@ -339,6 +447,7 @@ public class ShowRestaurantsView extends JPanel {
         @Override
         public void setValueAt(Object value, int row, int column) {
             StoreManagerModel restaurant = restaurants.get(row);
+            Object previousValue = getValueAt(row, column);
 
             switch (column) {
                 case 0 -> restaurant.setName(stringValue(value));
@@ -361,6 +470,11 @@ public class ShowRestaurantsView extends JPanel {
             }
 
             fireTableCellUpdated(row, column);
+            Object currentValue = getValueAt(row, column);
+            if (!Objects.equals(previousValue, currentValue)) {
+                restaurantTable.setRowSelectionInterval(row, row);
+                notifyRestaurantItemChangeListeners(restaurant);
+            }
         }
 
         private static String stringValue(Object value) {
@@ -427,5 +541,39 @@ public class ShowRestaurantsView extends JPanel {
 
     public void showMessage(String message) {
             JOptionPane.showMessageDialog(this, message);
+    }
+
+    private static final class SaveAllIcon implements Icon {
+        private final Color color;
+
+        private SaveAllIcon(Color color) {
+            this.color = color;
+        }
+
+        @Override
+        public int getIconWidth() {
+            return 20;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return 20;
+        }
+
+        @Override
+        public void paintIcon(Component component, Graphics graphics, int x, int y) {
+            Graphics2D graphics2D = (Graphics2D) graphics.create();
+            graphics2D.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics2D.setColor(color);
+
+            // Two overlapping document sheets: the conventional "save all" mark.
+            graphics2D.drawRoundRect(x + 2, y + 1, 11, 14, 2, 2);
+            graphics2D.drawRoundRect(x + 6, y + 5, 11, 13, 2, 2);
+            graphics2D.drawLine(x + 9, y + 10, x + 14, y + 10);
+            graphics2D.drawLine(x + 9, y + 13, x + 14, y + 13);
+            graphics2D.dispose();
+        }
     }
 }

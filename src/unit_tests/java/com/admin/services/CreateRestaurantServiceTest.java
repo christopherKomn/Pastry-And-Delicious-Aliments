@@ -12,21 +12,17 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.ErrorCodes.SUCCESS;
+import com.ErrorCodes;
 import static com.ErrorCodes.ALREADY_EXISTS;
 import static com.ErrorCodes.BAD_TYPE;
-import static com.ErrorCodes.UNMATCHED_IDS;
-import static com.ErrorCodes.NOT_FOUND;
-import static com.ErrorCodes.UNKNOWN_ERROR;
-
-import com.ErrorCodes;
+import static com.ErrorCodes.SUCCESS;
 import com.models.StoreManagerModel;
 import com.models.UserModel;
 import com.repository.IStoreManagerRepository;
 import com.repository.IUserRepository;
 
 @ExtendWith(MockitoExtension.class)
-class CreateRestaurantUnitTest {
+class CreateRestaurantServiceTest {
 
     @Mock
     private IStoreManagerRepository storeManagerRepository;
@@ -34,13 +30,13 @@ class CreateRestaurantUnitTest {
     @Mock
     private IUserRepository userRepository;
 
-    private CreateRestaurant service;
+    private CreateRestaurantService service;
     private UserModel user;
     private StoreManagerModel restaurant;
 
     @BeforeEach
     void setUp() {
-        service = new CreateRestaurant(storeManagerRepository, userRepository);
+        service = new CreateRestaurantService(storeManagerRepository, userRepository);
 
         user = new UserModel();
         user.setUsername("new_owner");

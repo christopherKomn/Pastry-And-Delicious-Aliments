@@ -285,11 +285,11 @@ END$$
 DELIMITER ;
 
 -- Seed users and sample catalogue data for local development.
-INSERT INTO users (email, phone, username, password, user_type)
+INSERT INTO users (email, phone, username, password, user_type , profile_image_url)
 VALUES
-    ('admin@pastry.local', '1000000001', 'admin_user', 'admin123', 'admin'),
-    ('customer@pastry.local', '1000000002', 'customer_user', 'customer123', 'customer'),
-    ('owner@pastry.local', '1000000003', 'store_manager', 'owner123', 'restaurant_owner');
+    ('admin@pastry.local', '1000000001', 'admin_user', 'admin123', 'admin' , "C:/Users/User/Pictures/admin_profile.png"),
+    ('customer@pastry.local', '1000000002', 'customer_user', 'customer123', 'customer', "C:/Users/User/Pictures/customer_profile.png"),
+    ('owner@pastry.local', '1000000003', 'store_manager', 'owner123', 'restaurant_owner', "C:/Users/User/Pictures/owner_profile.png");
 
 INSERT INTO customer (
     user_id,

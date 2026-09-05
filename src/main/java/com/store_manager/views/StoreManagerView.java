@@ -11,11 +11,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -27,11 +29,18 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 
 import com.models.CustomerModel;
 
 public class StoreManagerView extends JFrame {
+
+    public enum CustomerItemStatus {
+        NEW,
+        UPDATABLE,
+        CANCELED
+    }
 
     private static final Color BACKGROUND = new Color(245, 247, 250);
     private static final Color CARD_BACKGROUND = Color.WHITE;
@@ -49,6 +58,8 @@ public class StoreManagerView extends JFrame {
     private final JMenuItem showProfileMenuItem = new JMenuItem("Show More");
     private final JMenuItem logOutMenuItem = new JMenuItem("Log Out");
     private final List<ActionListener> customerDoubleClickListeners = new ArrayList<>();
+    private final Map<Integer, CustomerItemStatus> customerItemStatuses = new HashMap<>();
+    private int hoveredCustomerIndex = -1;
 
     public StoreManagerView() {
         setTitle("Store Manager");
@@ -158,24 +169,56 @@ public class StoreManagerView extends JFrame {
         customerList.setBackground(CARD_BACKGROUND);
         customerList.setSelectionBackground(new Color(250, 222, 212));
         customerList.setSelectionForeground(TEXT_PRIMARY);
-        customerList.setCellRenderer(new DefaultListCellRenderer() {
+        customerList.setCellRenderer(new ListCellRenderer<CustomerModel>() {
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+            public Component getListCellRendererComponent(JList<? extends CustomerModel> list,
+                    CustomerModel customer, int index,
                     boolean isSelected, boolean cellHasFocus) {
-                JLabel label = (JLabel) super.getListCellRendererComponent(
-                        list, value, index, isSelected, cellHasFocus);
-                CustomerModel customer = (CustomerModel) value;
+                JPanel itemPanel = new JPanel(new BorderLayout(8, 0));
+                itemPanel.setOpaque(true);
+
                 String city = customer.getCity() == null || customer.getCity().isBlank()
                         ? "No city"
                         : customer.getCity();
-                label.setText("<html><b>" + html(customer.getFullname())
-                        + "</b><br><span style='color:#69707a'>" + html(city) + "</span></html>");
-                label.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-                return label;
+
+                String customerName = html(customer.getFullname());
+                if (index == hoveredCustomerIndex) {
+                    customerName = "<b>" + customerName + "</b>";
+                }
+                JLabel customerDetails = new JLabel("<html>" + customerName
+                        + "<br><span style='color:#69707a'>" + html(city) + "</span></html>");
+                customerDetails.setForeground(TEXT_PRIMARY);
+
+                CustomerItemStatus status = customerItemStatuses.get(customer.getId());
+                JLabel statusMarker = createStatusMarker(status);
+
+                itemPanel.add(customerDetails, BorderLayout.CENTER);
+                if (statusMarker != null) {
+                    itemPanel.add(statusMarker, BorderLayout.EAST);
+                }
+
+                itemPanel.setBackground(isSelected
+                        ? selectedBackground(status)
+                        : statusBackground(status));
+                itemPanel.setBorder(BorderFactory.createCompoundBorder(
+                        isSelected
+                                ? BorderFactory.createLineBorder(new Color(196, 92, 62), 2)
+                                : BorderFactory.createMatteBorder(0, 0, 1, 0,
+                                        new Color(230, 233, 238)),
+                        BorderFactory.createEmptyBorder(5, 10, 5, 8)));
+                return itemPanel;
             }
         });
 
         customerList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent event) {
+                if (hoveredCustomerIndex != -1) {
+                    hoveredCustomerIndex = -1;
+                    customerList.repaint();
+                }
+            }
+
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() != 2) {
@@ -196,6 +239,22 @@ public class StoreManagerView extends JFrame {
                 notifyCustomerDoubleClickListeners();
             }
         });
+
+        customerList.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent event) {
+                int index = customerList.locationToIndex(event.getPoint());
+                Rectangle bounds = index < 0 ? null : customerList.getCellBounds(index, index);
+                int newHoveredIndex = bounds != null && bounds.contains(event.getPoint())
+                        ? index
+                        : -1;
+
+                if (newHoveredIndex != hoveredCustomerIndex) {
+                    hoveredCustomerIndex = newHoveredIndex;
+                    customerList.repaint();
+                }
+            }
+        });
     }
 
     public void setCustomers(List<CustomerModel> customers) {
@@ -207,6 +266,34 @@ public class StoreManagerView extends JFrame {
                 }
             }
         }
+    }
+
+    /**
+     * Changes the visual status of one customer entry.
+     * Passing {@code null} as the status restores the normal appearance.
+     */
+    public void setCustomerItemStatus(int customerId, CustomerItemStatus status) {
+        if (status == null) {
+            customerItemStatuses.remove(customerId);
+        } else {
+            customerItemStatuses.put(customerId, status);
+        }
+        customerList.repaint();
+    }
+
+    public void setCustomerItemStatus(CustomerModel customer, CustomerItemStatus status) {
+        if (customer == null) {
+            throw new IllegalArgumentException("Customer cannot be null.");
+        }
+        setCustomerItemStatus(customer.getId(), status);
+    }
+
+    public CustomerItemStatus getCustomerItemStatus(int customerId) {
+        return customerItemStatuses.get(customerId);
+    }
+
+    public void clearCustomerItemStatus(int customerId) {
+        setCustomerItemStatus(customerId, null);
     }
 
     public void setMainContent(JPanel panel) {
@@ -299,6 +386,60 @@ public class StoreManagerView extends JFrame {
         for (ActionListener listener : new ArrayList<>(customerDoubleClickListeners)) {
             listener.actionPerformed(event);
         }
+    }
+
+    private JLabel createStatusMarker(CustomerItemStatus status) {
+        if (status == null) {
+            return null;
+        }
+
+        JLabel marker = new JLabel();
+        marker.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        marker.setHorizontalAlignment(JLabel.RIGHT);
+        marker.setVerticalAlignment(JLabel.BOTTOM);
+
+        switch (status) {
+            case NEW -> {
+                marker.setText("!");
+                marker.setForeground(new Color(35, 125, 70));
+                marker.setToolTipText("New");
+            }
+            case UPDATABLE -> {
+                marker.setText("\u26A0");
+                marker.setForeground(new Color(160, 110, 0));
+                marker.setToolTipText("Updatable");
+            }
+            case CANCELED -> {
+                marker.setText("\u2298");
+                marker.setForeground(new Color(175, 45, 45));
+                marker.setToolTipText("Canceled");
+            }
+        }
+        return marker;
+    }
+
+    private Color statusBackground(CustomerItemStatus status) {
+        if (status == null) {
+            return CARD_BACKGROUND;
+        }
+
+        return switch (status) {
+            case NEW -> new Color(220, 245, 229);
+            case UPDATABLE -> new Color(255, 246, 204);
+            case CANCELED -> new Color(253, 226, 226);
+        };
+    }
+
+    private Color selectedBackground(CustomerItemStatus status) {
+        if (status == null) {
+            return new Color(250, 222, 212);
+        }
+
+        return switch (status) {
+            case NEW -> new Color(194, 232, 208);
+            case UPDATABLE -> new Color(244, 227, 157);
+            case CANCELED -> new Color(241, 198, 198);
+        };
     }
 
     private static String html(String value) {

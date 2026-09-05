@@ -3,17 +3,22 @@ package com.admin;
 import java.sql.Connection;
 
 import javax.swing.SwingUtilities;
-import com.models.*;
+
+import com.admin.controllers.AdminController;
+import com.admin.controllers.AdminInfoController;
+import com.admin.controllers.AdminInfoController;
 import com.admin.controllers.CreateRestaurantController;
 import com.admin.controllers.ShowCustomersController;
 import com.admin.controllers.ShowRestaurantsController;
-import com.admin.services.CreateRestaurant;
+import com.admin.services.CreateRestaurantService;
 import com.admin.services.ShowCustomersService;
 import com.admin.services.ShowRestaurantService;
+import com.admin.views.AdminInfoView;
 import com.admin.views.AdminView;
 import com.admin.views.CreateRestaurantView;
 import com.admin.views.ShowCustomersView;
 import com.admin.views.ShowRestaurantsView;
+import com.models.UserModel;
 import com.repository.DBCustomerRepository;
 import com.repository.DBStoreManagerRepository;
 import com.repository.DBUserRepository;
@@ -50,8 +55,8 @@ public class AdminMain {
                     new DBCustomerRepository(dbConnection);
 
             // services
-            CreateRestaurant service =
-                    new CreateRestaurant(storeRepository, userRepository);
+            CreateRestaurantService service =
+                    new CreateRestaurantService(storeRepository, userRepository);
 
             ShowRestaurantService showRestaurantService =
                     new ShowRestaurantService(storeRepository , userRepository);
@@ -61,6 +66,8 @@ public class AdminMain {
 
             // Views
             AdminView adminView = new AdminView();
+
+            AdminInfoView adminInfoView = new AdminInfoView();
 
             ShowRestaurantsView showRestaurantsView =
                     new ShowRestaurantsView();
@@ -81,21 +88,17 @@ public class AdminMain {
             ShowCustomersController showCustomersController = 
                     new ShowCustomersController(showCustomersService , showCustomersView);
             
+            AdminInfoController adminInfoController = 
+                    new AdminInfoController( adminInfoView , user );
 
-            // Admin menu action listeners
-            adminView.addCreateRestaurantListener(event -> {
-                adminView.showPanel(createRestaurantView);
-            });
-
-            adminView.addShowRestaurantsListener(event -> {
-                showRestaurantsController.RefreshRestaurantList();
-                adminView.showPanel(showRestaurantsView);
-            });
-
-            adminView.addShowCustomersListener(event -> {
-                adminView.showPanel(showCustomersView);
-            });
-
+            AdminController adminController = 
+            new AdminController(
+                user,
+                adminInfoView,
+                createRestaurantView, 
+                showRestaurantsView, 
+                adminView, 
+                showCustomersView);
             
 
             adminView.setVisible(true);

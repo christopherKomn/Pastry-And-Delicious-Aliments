@@ -2,20 +2,20 @@ package com.admin.controllers;
 
 import java.util.List;
 
-import com.admin.services.CreateRestaurant;
+import com.ErrorCodes;
+import com.admin.services.CreateRestaurantService;
 import com.admin.views.CreateRestaurantView;
 import com.models.StoreManagerModel;
 import com.models.UserModel;
-import com.ErrorCodes;
 
 public class CreateRestaurantController {
 
     private final CreateRestaurantView view;
-    private final CreateRestaurant service;
+    private final CreateRestaurantService service;
 
     public CreateRestaurantController(
             CreateRestaurantView view,
-            CreateRestaurant service) {
+            CreateRestaurantService service) {
         this.view = view;
         this.service = service;
         

@@ -24,7 +24,8 @@ public class AdminView extends JFrame {
     private final JMenuItem createRestaurantItem = new JMenuItem("Restaurant");
     private final JMenuItem showRestaurantsItem = new JMenuItem("Restaurants");
     private final JMenuItem showCustomersItem = new JMenuItem("Customers");
-    private final JMenuItem showProfileItem = new JMenuItem("Show");
+    private final JMenuItem mainPageItem = new JMenuItem("Main page");
+    private final JMenuItem editProfileItem = new JMenuItem("Edit...");
     private final JMenuItem logoutItem = new JMenuItem("Log out");
     private final JPanel contentPanel = new JPanel(new BorderLayout());
 
@@ -63,17 +64,19 @@ public class AdminView extends JFrame {
         JMenu createMenu = new JMenu("Create");
         createMenu.add(createRestaurantItem);
 
-        JMenu showMenu = new JMenu("Show");
-        showMenu.add(showRestaurantsItem);
-        showMenu.add(showCustomersItem);
+        JMenu viewMenu = new JMenu("View");
+        viewMenu.add(mainPageItem);
+        viewMenu.addSeparator();
+        viewMenu.add(showRestaurantsItem);
+        viewMenu.add(showCustomersItem);
 
         JMenu profileMenu = new JMenu("Profile");
-        profileMenu.add(showProfileItem);
+        profileMenu.add(editProfileItem);
         profileMenu.addSeparator();
         profileMenu.add(logoutItem);
 
         menuBar.add(createMenu);
-        menuBar.add(showMenu);
+        menuBar.add(viewMenu);
         menuBar.add(profileMenu);
         return menuBar;
     }
@@ -101,8 +104,12 @@ public class AdminView extends JFrame {
         showCustomersItem.addActionListener(listener);
     }
 
-    public void addShowProfileListener(ActionListener listener) {
-        showProfileItem.addActionListener(listener);
+    public void addMainPageListener(ActionListener listener) {
+        mainPageItem.addActionListener(listener);
+    }
+
+    public void addEditProfileListener(ActionListener listener) {
+        editProfileItem.addActionListener(listener);
     }
 
     public void addLogoutListener(ActionListener listener) {
