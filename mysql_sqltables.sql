@@ -180,7 +180,6 @@ CREATE TABLE order_items (
     order_id INT NOT NULL,
     menu_item_id INT NOT NULL,
     quantity INT NOT NULL,
-    total_price DECIMAL(10, 2) NOT NULL,
     special_instructions TEXT,
     selected_options JSON,
     CONSTRAINT fk_order_item_order
