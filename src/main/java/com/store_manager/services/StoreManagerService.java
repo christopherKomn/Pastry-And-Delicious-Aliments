@@ -7,7 +7,7 @@ import com.models.StoreManagerModel;
 import java.util.*;
 
 public class StoreManagerService {
-    
+    /*
     // Mock data storage
     private Map<Integer, Store> stores = new HashMap<>();
     private Map<Integer, List<MenuItem>> storeMenuItems = new HashMap<>();
@@ -301,5 +301,5 @@ public class StoreManagerService {
     
     public Store getStore(int storeId) {
         return stores.get(storeId);
-    }
+    }*/
 }

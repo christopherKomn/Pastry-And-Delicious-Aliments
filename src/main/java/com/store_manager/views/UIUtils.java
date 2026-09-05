@@ -1,4 +1,4 @@
-package com.storemanager.utils;
+package com.store_manager.views;
 
 import java.awt.Color;
 import java.awt.Component;
