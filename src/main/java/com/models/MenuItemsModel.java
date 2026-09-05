@@ -1,5 +1,6 @@
 package com.models;
 import java.sql.Timestamp;
+import java.math.BigDecimal;
 public class MenuItemsModel {
 
     private int item_id;
@@ -8,7 +9,7 @@ public class MenuItemsModel {
     private String item_name;
     private int item_quantity;
     private String item_description;
-    private float item_price;
+    private BigDecimal item_price;
     private float item_discounted_price;
     private int item_preparation_time;
     private Boolean is_available;
@@ -21,7 +22,7 @@ public class MenuItemsModel {
     public MenuItemsModel() {
     }
 
-    public MenuItemsModel(int id, int R_id, int C_id, String Name, int Quantity, String Description, float Price, float item_discounted_price,
+    public MenuItemsModel(int id, int R_id, int C_id, String Name, int Quantity, String Description, BigDecimal Price, float item_discounted_price,
         int Preparation_Time, Boolean active, String Image_Url, int Display_Order, Timestamp Created_at, Timestamp Updated_at) {
         this.item_id = id;
         this.restaurant_id = R_id;
@@ -105,11 +106,11 @@ public class MenuItemsModel {
         this.item_description = item_description;
     }
 
-    public float getItem_price() {
+    public BigDecimal getItem_price() {
         return item_price;
     }
 
-    public void setItem_price(float item_price) {
+    public void setItem_price(BigDecimal item_price) {
         this.item_price = item_price;
     }
 
