@@ -54,8 +54,8 @@ public class StoreManagerView extends JFrame {
     private final JMenu updateStoreMenu = new JMenu("Update Store");
     private final JMenuItem updateItemsMenuItem = new JMenuItem("Items");
     private final JMenuItem updateStatusMenuItem = new JMenuItem("Status");
-    private final JMenuItem updatePricesMenuItem = new JMenuItem("Prices");
-    private final JMenuItem showProfileMenuItem = new JMenuItem("Show More");
+    private final JMenuItem mainPageMenuItem = new JMenuItem("Main page");
+    private final JMenuItem editProfileMenuItem = new JMenuItem("Edit");
     private final JMenuItem logOutMenuItem = new JMenuItem("Log Out");
     private final List<ActionListener> customerDoubleClickListeners = new ArrayList<>();
     private final Map<Integer, CustomerItemStatus> customerItemStatuses = new HashMap<>();
@@ -115,18 +115,20 @@ public class StoreManagerView extends JFrame {
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         JMenu storeMenu = new JMenu("Store");
+        JMenu viewMenu = new JMenu("View");
         JMenu profileMenu = new JMenu("Profile");
 
         updateStoreMenu.add(updateItemsMenuItem);
         updateStoreMenu.add(updateStatusMenuItem);
-        updateStoreMenu.add(updatePricesMenuItem);
 
         storeMenu.add(updateStoreMenu);
-        profileMenu.add(showProfileMenuItem);
+        viewMenu.add(mainPageMenuItem);
+        profileMenu.add(editProfileMenuItem);
         profileMenu.addSeparator();
         profileMenu.add(logOutMenuItem);
 
         menuBar.add(storeMenu);
+        menuBar.add(viewMenu);
         menuBar.add(profileMenu);
 
         return menuBar;
@@ -365,16 +367,16 @@ public class StoreManagerView extends JFrame {
         updateStatusMenuItem.addActionListener(listener);
     }
 
-    public void addUpdatePricesListener(ActionListener listener) {
-        updatePricesMenuItem.addActionListener(listener);
+    public void addMainPageListener(ActionListener listener) {
+        mainPageMenuItem.addActionListener(listener);
     }
 
     public void addLogOutListener(ActionListener listener) {
         logOutMenuItem.addActionListener(listener);
     }
 
-    public void addShowProfileListener(ActionListener listener) {
-        showProfileMenuItem.addActionListener(listener);
+    public void addEditProfileListener(ActionListener listener) {
+        editProfileMenuItem.addActionListener(listener);
     }
 
     private void notifyCustomerDoubleClickListeners() {

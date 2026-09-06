@@ -9,6 +9,7 @@ import com.models.MenuItemsModel;
 import com.models.StoreManagerModel;
 import com.repository.IMenuItemsRepository;
 import com.repository.IStoreManagerRepository;
+import com.repository.StoreManagerRepository;
 
 /**
  * @brief Service class for managing the signed-in owner's menu items
@@ -17,6 +18,7 @@ import com.repository.IStoreManagerRepository;
 public class ShowItemsService {
     private final IStoreManagerRepository storeRepository;
     private final IMenuItemsRepository itemsRepository;
+    private final StoreManagerModel ownerStore;
     private final int ownerId;
 
     /**
@@ -26,10 +28,11 @@ public class ShowItemsService {
      * @param ownerId The ID of the signed-in owner
      */
     public ShowItemsService(IStoreManagerRepository storeRepository,
-            IMenuItemsRepository itemsRepository, int ownerId) {
+            IMenuItemsRepository itemsRepository , StoreManagerModel ownerStore ) {
         this.storeRepository = storeRepository;
         this.itemsRepository = itemsRepository;
-        this.ownerId = ownerId;
+        this.ownerStore = ownerStore;
+        this.ownerId = ownerStore.getOwner_id();
     }
 
     /**
