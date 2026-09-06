@@ -6,7 +6,6 @@ import javax.swing.SwingUtilities;
 
 import com.admin.controllers.AdminController;
 import com.admin.controllers.AdminInfoController;
-import com.admin.controllers.AdminInfoController;
 import com.admin.controllers.CreateRestaurantController;
 import com.admin.controllers.ShowCustomersController;
 import com.admin.controllers.ShowRestaurantsController;

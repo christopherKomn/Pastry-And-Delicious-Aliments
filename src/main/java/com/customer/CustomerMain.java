@@ -9,15 +9,15 @@ import javax.swing.SwingUtilities;
 
 import com.customer.views.CustomerView;
 import com.models.StoreManagerModel;
+import com.models.UserModel;
 import com.repository.DBStoreManagerRepository;
-
 public final class CustomerMain {
 
     private CustomerMain() {
         // Prevent instantiation
     }
 
-    public static void CMain(String[] args, Connection dbConnection) {
+    public static void CMain(String[] args, Connection dbConnection , UserModel user) {
         runCustomerModule(args, dbConnection);
     }
 

@@ -121,7 +121,7 @@ class ShowRestaurantServiceTest {
         when(storeManagerRepository.findById(1)).thenReturn(restaurant);
         
 
-        service.AddChangedRestaurant(restaurant);
+        assertEquals(ErrorCodes.SUCCESS, service.AddChangedRestaurant(restaurant));
         assertEquals(1, service.getChangedRestaurants().size());
         assertEquals(restaurant, service.getChangedRestaurants().get(0));
     }
