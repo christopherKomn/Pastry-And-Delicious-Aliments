@@ -1,9 +1,10 @@
 package com.admin.controllers;
 
+import com.admin.views.AdminInfoView;
 import com.admin.views.AdminView;
 import com.admin.views.CreateRestaurantView;
 import com.admin.views.ShowCustomersView;
-import com.admin.views.*;;
+import com.admin.views.ShowRestaurantsView;
 import com.models.UserModel;
 public class AdminController {
     private final CreateRestaurantView createRestaurantView;
