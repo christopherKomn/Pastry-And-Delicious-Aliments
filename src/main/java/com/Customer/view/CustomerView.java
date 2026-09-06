@@ -4,26 +4,28 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+<<<<<<< Updated upstream
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Window;
+=======
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+>>>>>>> Stashed changes
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -34,7 +36,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
 import com.models.StoreManagerModel;
 
 /** Customer-facing catalogue displayed after a customer logs in. */
@@ -49,7 +50,6 @@ public class CustomerView extends JFrame {
     private final List<ActionListener> restaurantListeners = new ArrayList<>();
     private final JPanel cardsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 18, 18));
     private final JTextField searchField = new JTextField();
-
     public CustomerView(List<StoreManagerModel> restaurants) {
         setTitle("Pastry | Restaurants");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -98,6 +98,7 @@ public class CustomerView extends JFrame {
     public void addRestaurantListener(ActionListener listener) {
         if (listener != null) {
             restaurantListeners.add(listener);
+            refreshCards();
         }
     }
 
@@ -226,10 +227,7 @@ public class CustomerView extends JFrame {
         details.setFocusPainted(false);
         details.setBorder(new EmptyBorder(5, 7, 5, 0));
         details.setActionCommand(String.valueOf(restaurant.getRestaurant_id()));
-        details.addActionListener(event -> showRestaurantDetails(this, restaurant));
-        for (ActionListener listener : restaurantListeners) {
-            details.addActionListener(listener);
-        }
+        details.addActionListener(event -> notifyRestaurantListeners(details, restaurant));
         footer.add(details, BorderLayout.EAST);
         card.add(footer, BorderLayout.SOUTH);
 
@@ -241,7 +239,7 @@ public class CustomerView extends JFrame {
         component.addMouseListener(new MouseAdapter() {
             @Override 
             public void mouseClicked(MouseEvent event) {
-                showRestaurantDetails(CustomerView.this, restaurant);
+                notifyRestaurantListeners(component, restaurant);
             }
             @Override 
             public void mouseEntered(MouseEvent event) { 
@@ -254,10 +252,22 @@ public class CustomerView extends JFrame {
         });
     }
 
-    private static void showRestaurantDetails(Component parent, StoreManagerModel restaurant) {
-        Window owner = parent == null ? null : SwingUtilities.getWindowAncestor(parent);
-        JDialog dialog = new JDialog(owner, "Restaurant details", Dialog.ModalityType.APPLICATION_MODAL);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+    private void notifyRestaurantListeners(Component source, StoreManagerModel restaurant) {
+        ActionEvent event = new ActionEvent(
+                source,
+                ActionEvent.ACTION_PERFORMED,
+            String.valueOf(restaurant.getRestaurant_id()));
+        for (ActionListener listener : restaurantListeners) {
+            listener.actionPerformed(event);
+        }
+    }
+
+    public void showRestaurantDetails(StoreManagerModel restaurant) {
+        javax.swing.JDialog dialog = new javax.swing.JDialog(
+                SwingUtilities.getWindowAncestor(this),
+                "Restaurant details",
+                java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setDefaultCloseOperation(javax.swing.JDialog.DISPOSE_ON_CLOSE);
 
         JPanel root = new JPanel(new BorderLayout(0, 16));
         root.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -268,7 +278,7 @@ public class CustomerView extends JFrame {
         title.setForeground(TEXT);
         root.add(title, BorderLayout.NORTH);
 
-        JPanel fields = new JPanel(new GridBagLayout());
+        JPanel fields = new JPanel(new java.awt.GridBagLayout());
         fields.setBackground(Color.WHITE);
         addDetailField(fields, 0, "Restaurant name", restaurant.getName());
         addDetailField(fields, 1, "Address", restaurant.getAddress_line1());
@@ -282,27 +292,27 @@ public class CustomerView extends JFrame {
         dialog.setContentPane(root);
         dialog.pack();
         dialog.setMinimumSize(new Dimension(390, 390));
-        dialog.setLocationRelativeTo(parent);
+        dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
 
     private static void addDetailField(JPanel panel, int row, String labelText, String value) {
-        GridBagConstraints labelConstraints = new GridBagConstraints();
+        java.awt.GridBagConstraints labelConstraints = new java.awt.GridBagConstraints();
         labelConstraints.gridx = 0;
         labelConstraints.gridy = row;
-        labelConstraints.anchor = GridBagConstraints.WEST;
-        labelConstraints.insets = new Insets(7, 0, 7, 14);
+        labelConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        labelConstraints.insets = new java.awt.Insets(7, 0, 7, 14);
 
         JLabel label = new JLabel(labelText);
         label.setForeground(MUTED);
         panel.add(label, labelConstraints);
 
-        GridBagConstraints valueConstraints = new GridBagConstraints();
+        java.awt.GridBagConstraints valueConstraints = new java.awt.GridBagConstraints();
         valueConstraints.gridx = 1;
         valueConstraints.gridy = row;
         valueConstraints.weightx = 1;
-        valueConstraints.fill = GridBagConstraints.HORIZONTAL;
-        valueConstraints.insets = new Insets(7, 0, 7, 0);
+        valueConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        valueConstraints.insets = new java.awt.Insets(7, 0, 7, 0);
 
         JLabel valueLabel = new JLabel(value(value, "-"));
         valueLabel.setForeground(TEXT);

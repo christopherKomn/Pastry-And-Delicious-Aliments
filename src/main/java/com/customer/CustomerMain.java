@@ -2,15 +2,15 @@ package com.customer;
 
 import java.sql.Connection;
 import java.util.ArrayList;
-import java.util.List;
 
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import com.customer.controllers.CustomerController;
+import com.customer.services.CustomerService;
 import com.customer.views.CustomerView;
-import com.models.StoreManagerModel;
 import com.models.UserModel;
 import com.repository.DBStoreManagerRepository;
+
 public final class CustomerMain {
 
     private CustomerMain() {
@@ -24,26 +24,14 @@ public final class CustomerMain {
     public static void runCustomerModule(String[] args, Connection dbConnection) {
         System.out.println("Hello, Customer!");
 
-        // Open the panel immediately; database loading must not block its creation.
-        CustomerView customerView = new CustomerView(new ArrayList<>());
-        SwingUtilities.invokeLater(() -> customerView.setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            CustomerService customerService =
+                new CustomerService(new DBStoreManagerRepository(dbConnection));
+            CustomerView customerView = new CustomerView(new ArrayList<>());
+            CustomerController customerController =
+                new CustomerController(customerService, customerView);
 
-        new Thread(() -> {
-            try {
-                DBStoreManagerRepository repository = new DBStoreManagerRepository(dbConnection);
-                List<StoreManagerModel> restaurants = repository.findAll();
-                SwingUtilities.invokeLater(() -> customerView.setRestaurants(restaurants));
-
-            } catch (Exception exception) {
-                SwingUtilities.invokeLater(() -> 
-                    JOptionPane.showMessageDialog(
-                        customerView,
-                        "Could not load restaurants: " + exception.getMessage(),
-                        "Error", 
-                        JOptionPane.ERROR_MESSAGE
-                    )
-                );
-            }
-        }).start();
+            customerView.setVisible(true);
+        });
     }
 }
