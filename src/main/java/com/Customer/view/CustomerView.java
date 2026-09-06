@@ -2,27 +2,20 @@ package com.customer.views;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
+import java.awt.Component; 
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-<<<<<<< Updated upstream
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.Window;
-=======
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
->>>>>>> Stashed changes
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -36,6 +29,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
 import com.models.StoreManagerModel;
 
 /** Customer-facing catalogue displayed after a customer logs in. */

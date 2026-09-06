@@ -2,18 +2,19 @@ package com.store_manager;
 
 import java.sql.Connection;
 
-import javax.swing.JPanel;
-
-import com.models.*;
-import com.repository.*;
-
-import com.store_manager.controllers.*;
-import com.store_manager.services.*;
-import com.store_manager.views.*;
+import com.models.StoreManagerModel;
+import com.models.UserModel;
+import com.repository.DBMenuItemsRepository;
+import com.repository.DBStoreManagerRepository;
+import com.repository.IMenuItemsRepository;
+import com.repository.IStoreManagerRepository;
+import com.store_manager.services.ShowItemsService;
 
 public class StoreManagerMain {
     public static void SMMain(String[] args ,Connection dbConnection , UserModel user) {
         System.out.println("Hello, Store Manager!");
+
+        
         
         // Repositories 
         
@@ -23,9 +24,22 @@ public class StoreManagerMain {
         IMenuItemsRepository irepo =
             new DBMenuItemsRepository(dbConnection);
 
+
+
+
+        // get Store manager from loggin user
+        StoreManagerModel ownerStore = srepo.findByOwnerId(user.getUserId());
+
+
+
+
         // services
         ShowItemsService showItemsService =
-            new ShowItemsService(srepo , irepo);
+            new ShowItemsService(srepo , irepo , ownerStore);
+
+
+
+        // views
 
         
         

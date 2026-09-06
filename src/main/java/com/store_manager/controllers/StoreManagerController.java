@@ -5,7 +5,7 @@ import com.store_manager.views.StoreManagerView;
 import com.models.StoreManagerModel;
 
 public class StoreManagerController {
-    private final StoreManagerView storeManagerView;
+/*    private final StoreManagerView storeManagerView;
     private final StoreManagerInfoView storeManagerInfoView;
     private final StoreManagerModel restaurant;
 
@@ -25,5 +25,5 @@ public class StoreManagerController {
 
         // Show the main page by default
         storeManagerView.showPanel(storeManagerInfoView);
-    }
+    }*/
 }
