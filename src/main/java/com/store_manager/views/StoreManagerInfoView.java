@@ -31,7 +31,7 @@ public class StoreManagerInfoView extends JPanel {
     private static final Color TEXT_SECONDARY = new Color(105, 112, 122);
     private static final Color ACTIVE = new Color(35, 125, 70);
     private static final Color INACTIVE = new Color(175, 45, 45);
-    private static final int IMAGE_SIZE = 180;
+    private static final int IMAGE_SIZE = 400;
 
     private final StoreManagerModel restaurant;
 

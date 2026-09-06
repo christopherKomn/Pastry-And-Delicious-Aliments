@@ -311,7 +311,8 @@ INSERT INTO restaurants (
     city,
     state,
     postal_code,
-    cuisine_type
+    cuisine_type,
+    logo_url
 )
 SELECT id,
        'The Pastry Corner',
@@ -320,7 +321,8 @@ SELECT id,
        'Pastryville',
        'PA',
        '10001',
-       'Bakery'
+       'Bakery',
+         'C:/Users/User/Pictures/pastry_corner_logo.png'
 FROM users
 WHERE username = 'store_manager';
 
