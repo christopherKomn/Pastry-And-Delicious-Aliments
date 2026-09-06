@@ -5,7 +5,9 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.HierarchyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +46,7 @@ public class ShowItemsView extends JPanel {
     private final JTextField itemQuantityInput = new JTextField("0");
     private final JCheckBox itemAvailableInput = new JCheckBox("Available", true);
     private final JButton saveItemButton = new JButton("Save Item");
+    private final List<ActionListener> viewShownListeners = new ArrayList<>();
     private ItemEditListener itemEditListener;
 
     @FunctionalInterface
@@ -125,7 +128,31 @@ public class ShowItemsView extends JPanel {
         footer.add(actions, BorderLayout.CENTER);
         add(footer, BorderLayout.SOUTH);
 
+        addHierarchyListener(event -> {
+            if ((event.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0
+                    && isShowing()) {
+                notifyViewShownListeners();
+            }
+        });
+
         updateActions();
+    }
+
+    public void addViewShownListener(ActionListener listener) {
+        if (listener != null) {
+            viewShownListeners.add(listener);
+        }
+    }
+
+    private void notifyViewShownListeners() {
+        ActionEvent event = new ActionEvent(
+                this,
+                ActionEvent.ACTION_PERFORMED,
+                "viewShown");
+
+        for (ActionListener listener : new ArrayList<>(viewShownListeners)) {
+            listener.actionPerformed(event);
+        }
     }
 
     public void addBackListener(ActionListener listener) {

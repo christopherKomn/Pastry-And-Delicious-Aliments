@@ -27,6 +27,10 @@ public class ShowItemsController {
             }
             updateItem(item, 3, Boolean.TRUE.equals(item.getIs_available()) ? "Unavailable" : "Available");
         });
+
+        view.addViewShownListener(event -> refreshItems());
+        
+        
     }
 
     private void updateItem(MenuItemsModel item, int column, Object value) {
