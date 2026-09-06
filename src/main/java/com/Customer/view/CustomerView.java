@@ -2,12 +2,16 @@ package com.customer.views;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component; 
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -15,7 +19,6 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -29,10 +32,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
 import com.models.StoreManagerModel;
 
-/** Customer-facing catalogue displayed after a customer logs in. */
+
 public class CustomerView extends JFrame {
     private static final Color BACKGROUND = new Color(250, 247, 244);
     private static final Color TEXT = new Color(48, 40, 36);
@@ -42,6 +44,7 @@ public class CustomerView extends JFrame {
 
     private final List<StoreManagerModel> restaurants = new ArrayList<>();
     private final List<ActionListener> restaurantListeners = new ArrayList<>();
+    private final List<ActionListener> refreshListeners = new ArrayList<>();
     private final JPanel cardsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 18, 18));
     private final JTextField searchField = new JTextField();
     public CustomerView(List<StoreManagerModel> restaurants) {
@@ -96,8 +99,13 @@ public class CustomerView extends JFrame {
         }
     }
 
+    public void addRefreshListener(ActionListener listener) {
+        if (listener != null) {
+            refreshListeners.add(listener);
+        }
+    }
+
     private void triggerRefresh() {
-        // Ensures Swing components are mutated strictly on the Event Dispatch Thread
         SwingUtilities.invokeLater(this::refreshCards);
     }
 
@@ -133,6 +141,21 @@ public class CustomerView extends JFrame {
         searchPanel.add(searchField, BorderLayout.CENTER);
         searchPanel.setPreferredSize(new Dimension(305, 43));
         header.add(searchPanel, BorderLayout.EAST);
+
+        JButton refreshButton = new JButton("↻");
+        refreshButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        refreshButton.setForeground(TEXT);
+        refreshButton.setBackground(Color.WHITE);
+        refreshButton.setFocusPainted(false);
+        refreshButton.setPreferredSize(new Dimension(34, 34));
+        refreshButton.setToolTipText("Refresh restaurants");
+        refreshButton.setBorder(BorderFactory.createLineBorder(new Color(229, 218, 210)));
+        refreshButton.addActionListener(this::notifyRefreshListeners);
+
+        JPanel refreshPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        refreshPanel.setOpaque(false);
+        refreshPanel.add(refreshButton);
+        header.add(refreshPanel, BorderLayout.SOUTH);
         return header;
     }
 
@@ -232,10 +255,6 @@ public class CustomerView extends JFrame {
     private void makeClickable(JComponent component, StoreManagerModel restaurant) {
         component.addMouseListener(new MouseAdapter() {
             @Override 
-            public void mouseClicked(MouseEvent event) {
-                notifyRestaurantListeners(component, restaurant);
-            }
-            @Override 
             public void mouseEntered(MouseEvent event) { 
                 component.setBorder(hoverBorder()); 
             }
@@ -244,6 +263,12 @@ public class CustomerView extends JFrame {
                 component.setBorder(normalBorder()); 
             }
         });
+    }
+
+    private void notifyRefreshListeners(ActionEvent event) {
+        for (ActionListener listener : refreshListeners) {
+            listener.actionPerformed(event);
+        }
     }
 
     private void notifyRestaurantListeners(Component source, StoreManagerModel restaurant) {

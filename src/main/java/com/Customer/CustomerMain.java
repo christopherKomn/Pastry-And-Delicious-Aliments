@@ -14,7 +14,6 @@ import com.repository.DBStoreManagerRepository;
 public final class CustomerMain {
 
     private CustomerMain() {
-        // Prevent instantiation
     }
 
     public static void CMain(String[] args, Connection dbConnection , UserModel user) {

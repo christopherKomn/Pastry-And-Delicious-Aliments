@@ -18,6 +18,7 @@ public class CustomerController {
         this.view = view;
 
         view.addRestaurantListener(this::handleRestaurantSelection);
+        view.addRefreshListener(event -> loadRestaurants());
         loadRestaurants();
     }
 
