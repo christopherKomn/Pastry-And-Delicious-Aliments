@@ -1,14 +1,27 @@
 package com.store_manager.views;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import java.awt.Component;
 import java.awt.Container;
 import java.math.BigDecimal;
 import java.util.List;
-import javax.swing.*;
+
+import javax.swing.JComboBox;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import com.models.MenuItemsModel;
 import com.models.StoreManagerModel;
 import com.repository.IMenuItemsRepository;
@@ -53,7 +66,7 @@ class ShowItemsViewTest {
             item.setItem_price(new BigDecimal("3.50"));
             item.setIs_available(true);
             ShowItemsView view = new ShowItemsView();
-            new ShowItemsController(new ShowItemsService(stores, repository, 3), view);
+            new ShowItemsController(new ShowItemsService(stores, repository, store), view);
             view.setItems(List.of(item));
             JTable table = findTable(view);
             assertNotNull(table);

@@ -1,14 +1,26 @@
 package com.store_manager.services;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.util.List;
 import java.math.BigDecimal;
-import org.mockito.ArgumentCaptor;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import com.models.MenuItemsModel;
 import com.models.StoreManagerModel;
 import com.repository.IMenuItemsRepository;
@@ -17,7 +29,16 @@ import com.repository.IStoreManagerRepository;
 class ShowItemsServiceTest {
     private final IStoreManagerRepository stores = mock(IStoreManagerRepository.class);
     private final IMenuItemsRepository items = mock(IMenuItemsRepository.class);
-    private final ShowItemsService service = new ShowItemsService(stores, items, 3);
+    private ShowItemsService service;
+
+    @BeforeEach
+    void setUp() {
+        StoreManagerModel store = new StoreManagerModel();
+        service = new ShowItemsService(stores, items, store);
+        store.setRestaurant_id(7);
+        when(stores.findByOwnerId(3)).thenReturn(store);
+    }
+
 
     @Test
     void removesOnlyFromSignedInOwnersStore() {
