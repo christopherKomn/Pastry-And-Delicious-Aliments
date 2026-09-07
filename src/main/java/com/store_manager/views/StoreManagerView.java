@@ -359,6 +359,20 @@ public class StoreManagerView extends JFrame {
         selfDestructButton.addActionListener(listener);
     }
 
+    public boolean confirmStoreDeletion() {
+        Object[] options = {"Delete permanently", "Cancel"};
+        return javax.swing.JOptionPane.showOptionDialog(this,
+                "Permanently delete your store, all its products, categories and orders?\n"
+                        + "This cannot be undone. Your owner account will be kept.",
+                "Delete store", javax.swing.JOptionPane.YES_NO_OPTION,
+                javax.swing.JOptionPane.WARNING_MESSAGE, null, options, options[1])
+                == javax.swing.JOptionPane.YES_OPTION;
+    }
+
+    public void showMessage(String message) {
+        javax.swing.JOptionPane.showMessageDialog(this, message);
+    }
+
     public void addUpdateItemsListener(ActionListener listener) {
         updateItemsMenuItem.addActionListener(listener);
     }

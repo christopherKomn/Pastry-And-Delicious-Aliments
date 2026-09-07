@@ -19,6 +19,8 @@ public interface IStoreManagerRepository  {
 
     ErrorCodes deleteById(int id);
 
+    ErrorCodes deleteByOwnerId(int ownerId);
+
     StoreManagerModel findByOwnerId(int ownerId);
 
     StoreManagerModel findByNCAP(
