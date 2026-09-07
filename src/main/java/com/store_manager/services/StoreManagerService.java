@@ -74,6 +74,18 @@ public class StoreManagerService {
         return customers; // Replace with actual customer list
     }
 
+    public OrderModel getOrderByCustomer(CustomerModel customer) {
+        List<OrderModel> orders = m_orderRepository.findByRestaurantId(
+            Long.valueOf(m_storeManager.getRestaurant_id())
+        );
+        for (OrderModel order : orders) {
+            if (order.getCustomer_id() == customer.getId()) {
+                return order;
+            }
+        }
+        return null; // No order found for the given customer
+    }
+
     public ErrorCodes deleteStore() {
         try {
             // The owner-scoped DELETE also handles a store removed since login.

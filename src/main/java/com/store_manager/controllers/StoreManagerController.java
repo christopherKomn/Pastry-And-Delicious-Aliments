@@ -1,28 +1,35 @@
 package com.store_manager.controllers;
 
+import java.util.List;
+
 import javax.swing.Timer;
 
 import com.ErrorCodes;
 import com.models.CustomerModel;
+import com.models.OrderModel;
 import com.store_manager.services.StoreManagerService;
+import com.store_manager.views.OrderView;
 import com.store_manager.views.ShowItemsView;
 import com.store_manager.views.StoreManagerInfoView;
 import com.store_manager.views.StoreManagerView;
-import java.util.List;
 public class StoreManagerController {
     private final StoreManagerView storeManagerView;
     private final StoreManagerInfoView storeManagerInfoView;
     private final ShowItemsView showItemsView;
+    private final OrderView orderView;
     private final StoreManagerService service;
 
     public StoreManagerController(
         StoreManagerInfoView storeManagerInfoView, 
         ShowItemsView showItemsView,
-        StoreManagerView storeManagerView, StoreManagerService service) {
+        StoreManagerView storeManagerView, StoreManagerService service,
+        OrderView orderView) {
         this.service = service;
+        this.orderView = orderView;
         this.storeManagerInfoView = storeManagerInfoView;
         this.showItemsView = showItemsView;
         this.storeManagerView = storeManagerView;
+
         storeManagerView.addSelfDestructListener(event -> deleteStore());
 
         // Add action listeners for the menu items
@@ -32,6 +39,19 @@ public class StoreManagerController {
 
         storeManagerView.addMainPageListener(event -> {
             storeManagerView.setMainContent(storeManagerInfoView);
+        });
+
+        storeManagerView.addCustomerDoubleClickListener(event -> {
+             CustomerModel selectedCustomer = storeManagerView.getSelectedCustomer();
+             if (selectedCustomer != null) {
+                OrderModel order = service.getOrderByCustomer(selectedCustomer);
+                if (order != null) {
+                    orderView.setTheOrder(order);
+                    storeManagerView.setMainContent(orderView);
+                } else {
+                    storeManagerView.showMessage("No order found for the selected customer.");
+                }
+             }
         });
 
         // Show the main page by default
