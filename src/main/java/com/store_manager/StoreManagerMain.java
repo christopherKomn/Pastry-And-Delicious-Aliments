@@ -16,6 +16,8 @@ import com.repository.IUserRepository;
 import com.store_manager.controllers.ShowItemsController;
 import com.store_manager.controllers.StoreManagerController;
 import com.store_manager.services.ShowItemsService;
+import com.store_manager.services.StoreManagerService;
+import javax.swing.JOptionPane;
 import com.store_manager.views.ShowItemsView;
 import com.store_manager.views.StoreManagerInfoView;
 import com.store_manager.views.StoreManagerView;
@@ -49,11 +51,16 @@ public class StoreManagerMain {
 
         // get Store manager from loggin user
         StoreManagerModel ownerStore = srepo.findByOwnerId(user.getUserId());
+        if (ownerStore == null) {
+            JOptionPane.showMessageDialog(null, "No store is linked to your account.");
+            return;
+        }
 
 
 
 
         // services
+        StoreManagerService storeManagerService = new StoreManagerService(srepo, user.getUserId());
         ShowItemsService showItemsService =
             new ShowItemsService(srepo , irepo , ownerStore);
 
@@ -77,7 +84,7 @@ public class StoreManagerMain {
             new ShowItemsController(showItemsService , showItemsView);
         
         StoreManagerController storeManagerController =
-            new StoreManagerController(storeManagerInfoView , showItemsView , storeManagerView);
+            new StoreManagerController(storeManagerInfoView , showItemsView , storeManagerView, storeManagerService);
 
         
 

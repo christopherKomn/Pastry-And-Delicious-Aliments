@@ -126,6 +126,18 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
         }
     }
 
+    /** InnoDB deletes the restaurant and its dependent rows atomically via ON DELETE CASCADE. */
+    @Override
+    public ErrorCodes deleteByOwnerId(int ownerId) {
+        String sql = "DELETE FROM restaurants WHERE owner_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, ownerId);
+            return statement.executeUpdate() == 0 ? ErrorCodes.NOT_FOUND : ErrorCodes.SUCCESS;
+        } catch (SQLException exception) {
+            throw databaseException("delete restaurant by owner ID", exception);
+        }
+    }
+
     @Override
     public StoreManagerModel findByNCAP(String name, String city, String addressLine1, String postalCode) {
         String sql = "SELECT " + SELECT_COLUMNS + " FROM restaurants WHERE name = ? AND city = ? AND address_line1 = ? AND postal_code = ?";
