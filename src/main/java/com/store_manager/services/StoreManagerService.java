@@ -1,12 +1,77 @@
 package com.store_manager.services;
 
-import com.models.MenuItemsModel;
-import com.models.OrderItemsModel;
+import java.util.List;
+
+import com.ErrorCodes;
+import com.models.CustomerModel;
+import com.models.OrderModel;
 import com.models.StoreManagerModel;
-
-import java.util.*;
-
+import com.repository.IOrderItemsRepository;
+import com.repository.IOrderRepository;
+import com.repository.IStoreManagerRepository;
 public class StoreManagerService {
+
+    private final StoreManagerModel m_storeManager;
+    private final IStoreManagerRepository m_storeManagerRepository;
+    private final IOrderRepository m_orderRepository;
+    private final IOrderItemsRepository m_orderItemsRepository;
+    private int ownerId;
+    public StoreManagerService(StoreManagerModel storeManager, IStoreManagerRepository storeManagerRepository,
+                               IOrderRepository orderRepository, IOrderItemsRepository orderItemsRepository) {
+        this.m_storeManager = storeManager;
+        this.m_storeManagerRepository = storeManagerRepository;
+        this.m_orderRepository = orderRepository;
+        this.m_orderItemsRepository = orderItemsRepository;
+        this.ownerId = storeManager.getOwner_id();
+    }
+
+    
+
+
+    public StoreManagerService( StoreManagerService other) {
+        this.m_storeManager = other.m_storeManager;
+        this.m_storeManagerRepository = other.m_storeManagerRepository;
+        this.m_orderRepository = other.m_orderRepository;
+        this.m_orderItemsRepository = other.m_orderItemsRepository;
+    }
+
+
+    // getters
+    public StoreManagerModel getStoreManager() {
+        return m_storeManager;
+    }
+
+    public IStoreManagerRepository getStoreManagerRepository() {
+        return m_storeManagerRepository;
+    }
+
+    public IOrderRepository getOrderRepository() {
+        return m_orderRepository;
+    }
+
+    public IOrderItemsRepository getOrderItemsRepository() {
+        return m_orderItemsRepository;
+    }
+
+    public List<CustomerModel> getAllCustomersOrders(){
+        List<OrderModel> orders = m_orderRepository.findByRestaurantId(
+            Long.valueOf(m_storeManager.getRestaurant_id())
+        );
+
+        // Process orders to extract customer information
+        return null; // Replace with actual customer list
+    }
+
+    public ErrorCodes deleteStore() {
+        try {
+            // The owner-scoped DELETE also handles a store removed since login.
+            return m_storeManagerRepository.deleteByOwnerId(ownerId);
+        } catch (RuntimeException exception) {
+            return ErrorCodes.IO_ERROR;
+        }
+    }
+
+
     /*
     // Mock data storage
     private Map<Integer, Store> stores = new HashMap<>();
@@ -291,5 +356,15 @@ public class StoreManagerService {
             System.out.println("[DATABASE] Store not found with ID: " + storeId);
             return false;
         }
+        
+        storeMenuItems.remove(storeId);
+        storeOrders.remove(storeId);
+        
+        System.out.println("[DATABASE] Store " + storeId + " removed with all associated data");
+        return true;
     }
+    
+    public Store getStore(int storeId) {
+        return stores.get(storeId);
+    }*/
 }

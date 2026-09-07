@@ -2,6 +2,8 @@ package com.store_manager;
 
 import java.sql.Connection;
 
+import javax.swing.JOptionPane;
+
 import com.models.StoreManagerModel;
 import com.models.UserModel;
 import com.repository.DBMenuItemsRepository;
@@ -17,7 +19,6 @@ import com.store_manager.controllers.ShowItemsController;
 import com.store_manager.controllers.StoreManagerController;
 import com.store_manager.services.ShowItemsService;
 import com.store_manager.services.StoreManagerService;
-import javax.swing.JOptionPane;
 import com.store_manager.views.ShowItemsView;
 import com.store_manager.views.StoreManagerInfoView;
 import com.store_manager.views.StoreManagerView;
@@ -60,7 +61,10 @@ public class StoreManagerMain {
 
 
         // services
-        StoreManagerService storeManagerService = new StoreManagerService(srepo, user.getUserId());
+        StoreManagerService storeManagerService = new StoreManagerService(
+            ownerStore, srepo, orepo, oirepo
+        );
+        
         ShowItemsService showItemsService =
             new ShowItemsService(srepo , irepo , ownerStore);
 
