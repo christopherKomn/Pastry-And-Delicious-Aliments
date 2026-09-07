@@ -1,11 +1,14 @@
 package com.store_manager.controllers;
 
+import javax.swing.Timer;
+
+import com.ErrorCodes;
+import com.models.CustomerModel;
+import com.store_manager.services.StoreManagerService;
 import com.store_manager.views.ShowItemsView;
 import com.store_manager.views.StoreManagerInfoView;
 import com.store_manager.views.StoreManagerView;
-import com.ErrorCodes;
-import com.store_manager.services.StoreManagerService;
-
+import java.util.List;
 public class StoreManagerController {
     private final StoreManagerView storeManagerView;
     private final StoreManagerInfoView storeManagerInfoView;
@@ -33,6 +36,20 @@ public class StoreManagerController {
 
         // Show the main page by default
         storeManagerView.setMainContent(storeManagerInfoView);
+
+        Timer timer = new Timer(5_000, event -> {
+            List<CustomerModel> customers = service.getAllCustomersOrders();
+            storeManagerView.setCustomers(customers);
+            for (CustomerModel customer : customers) {
+                
+            
+                storeManagerView.setCustomerItemStatus(
+                    customer , 
+                    StoreManagerView.CustomerItemStatus.NEW);
+            }
+        });
+
+        timer.start();
     }
 
     private void deleteStore() {

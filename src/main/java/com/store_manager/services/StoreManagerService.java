@@ -1,12 +1,13 @@
 package com.store_manager.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.ErrorCodes;
 import com.models.CustomerModel;
 import com.models.OrderModel;
 import com.models.StoreManagerModel;
-import com.repository.IOrderItemsRepository;
+import com.repository.ICustomerRepository;
 import com.repository.IOrderRepository;
 import com.repository.IStoreManagerRepository;
 public class StoreManagerService {
@@ -14,14 +15,15 @@ public class StoreManagerService {
     private final StoreManagerModel m_storeManager;
     private final IStoreManagerRepository m_storeManagerRepository;
     private final IOrderRepository m_orderRepository;
-    private final IOrderItemsRepository m_orderItemsRepository;
+    private final ICustomerRepository m_customerRepository;
     private int ownerId;
+
     public StoreManagerService(StoreManagerModel storeManager, IStoreManagerRepository storeManagerRepository,
-                               IOrderRepository orderRepository, IOrderItemsRepository orderItemsRepository) {
+                               IOrderRepository orderRepository, ICustomerRepository customerRepository) {
         this.m_storeManager = storeManager;
         this.m_storeManagerRepository = storeManagerRepository;
         this.m_orderRepository = orderRepository;
-        this.m_orderItemsRepository = orderItemsRepository;
+        this.m_customerRepository = customerRepository;
         this.ownerId = storeManager.getOwner_id();
     }
 
@@ -32,7 +34,8 @@ public class StoreManagerService {
         this.m_storeManager = other.m_storeManager;
         this.m_storeManagerRepository = other.m_storeManagerRepository;
         this.m_orderRepository = other.m_orderRepository;
-        this.m_orderItemsRepository = other.m_orderItemsRepository;
+        this.m_customerRepository = other.m_customerRepository;
+        this.ownerId = m_storeManager.getOwner_id();
     }
 
 
@@ -49,17 +52,26 @@ public class StoreManagerService {
         return m_orderRepository;
     }
 
-    public IOrderItemsRepository getOrderItemsRepository() {
-        return m_orderItemsRepository;
+    public ICustomerRepository getCustomerRepository() {
+        return m_customerRepository;
     }
 
     public List<CustomerModel> getAllCustomersOrders(){
         List<OrderModel> orders = m_orderRepository.findByRestaurantId(
             Long.valueOf(m_storeManager.getRestaurant_id())
         );
+        List<CustomerModel> customers = new ArrayList<>();
+        for (OrderModel order : orders) {
+            CustomerModel customer = m_customerRepository.
+            findById(order.getCustomer_id());
+            if ( (customer != null)  ) {
+                customers.add(customer);
+            }
+        }
+        
 
         // Process orders to extract customer information
-        return null; // Replace with actual customer list
+        return customers; // Replace with actual customer list
     }
 
     public ErrorCodes deleteStore() {

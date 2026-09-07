@@ -10,6 +10,7 @@ import com.repository.DBMenuItemsRepository;
 import com.repository.DBOrderItemsRepository;
 import com.repository.DBOrderRepository;
 import com.repository.DBStoreManagerRepository;
+import com.repository.ICustomerRepository;
 import com.repository.IMenuItemsRepository;
 import com.repository.IOrderItemsRepository;
 import com.repository.IOrderRepository;
@@ -40,6 +41,9 @@ public class StoreManagerMain {
         IUserRepository urepo =
             new com.repository.DBUserRepository(dbConnection);
 
+        ICustomerRepository crepo =
+            new com.repository.DBCustomerRepository(dbConnection);
+
         IOrderRepository orepo =
             new DBOrderRepository(dbConnection);
 
@@ -62,7 +66,7 @@ public class StoreManagerMain {
 
         // services
         StoreManagerService storeManagerService = new StoreManagerService(
-            ownerStore, srepo, orepo, oirepo
+            ownerStore, srepo, orepo, crepo
         );
         
         ShowItemsService showItemsService =
