@@ -7,7 +7,11 @@ import javax.swing.JOptionPane;
 
 import com.customer.services.CustomerService;
 import com.customer.views.CustomerView;
+import com.customer.views.CustomerMenuView;
+import com.models.MenuItemsModel;
 import com.models.StoreManagerModel;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class CustomerController {
     private final CustomerService service;
@@ -18,6 +22,7 @@ public class CustomerController {
         this.view = view;
 
         view.addRestaurantListener(this::handleRestaurantSelection);
+        view.addMenuListener(this::handleMenuSelection);
         view.addRefreshListener(event -> loadRestaurants());
         loadRestaurants();
     }
@@ -28,6 +33,29 @@ public class CustomerController {
         if (restaurant != null) {
             view.showRestaurantDetails(restaurant);
         }
+    }
+
+    private void handleMenuSelection(ActionEvent event) {
+        int restaurantId = Integer.parseInt(event.getActionCommand());
+        StoreManagerModel restaurant = service.getRestaurantById(restaurantId);
+        if (restaurant != null) {
+            CustomerMenuView menuView = new CustomerMenuView(restaurantId, restaurant.getName());
+            Map<Integer, Integer> cart = new LinkedHashMap<>();
+            menuView.addToCartListener(itemEvent -> addProductToCart(menuView, cart, itemEvent));
+            menuView.setProducts(service.getAvailableProducts(restaurantId));
+            menuView.setVisible(true);
+        }
+    }
+
+    private void addProductToCart(
+            CustomerMenuView menuView,
+            Map<Integer, Integer> cart,
+            ActionEvent event) {
+        String[] selection = event.getActionCommand().split(":", 2);
+        int itemId = Integer.parseInt(selection[0]);
+        int quantity = Integer.parseInt(selection[1]);
+        cart.merge(itemId, quantity, Integer::sum);
+        menuView.setCart(cart);
     }
 
     public void loadRestaurants() {

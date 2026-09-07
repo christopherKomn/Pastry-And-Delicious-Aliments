@@ -44,6 +44,7 @@ public class CustomerView extends JFrame {
 
     private final List<StoreManagerModel> restaurants = new ArrayList<>();
     private final List<ActionListener> restaurantListeners = new ArrayList<>();
+    private final List<ActionListener> menuListeners = new ArrayList<>();
     private final List<ActionListener> refreshListeners = new ArrayList<>();
     private final JPanel cardsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 18, 18));
     private final JTextField searchField = new JTextField();
@@ -96,6 +97,12 @@ public class CustomerView extends JFrame {
         if (listener != null) {
             restaurantListeners.add(listener);
             refreshCards();
+        }
+    }
+
+    public void addMenuListener(ActionListener listener) {
+        if (listener != null) {
+            menuListeners.add(listener);
         }
     }
 
@@ -254,6 +261,11 @@ public class CustomerView extends JFrame {
 
     private void makeClickable(JComponent component, StoreManagerModel restaurant) {
         component.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                notifyMenuListeners(component, restaurant);
+            }
+
             @Override 
             public void mouseEntered(MouseEvent event) { 
                 component.setBorder(hoverBorder()); 
@@ -263,6 +275,16 @@ public class CustomerView extends JFrame {
                 component.setBorder(normalBorder()); 
             }
         });
+    }
+
+    private void notifyMenuListeners(Component source, StoreManagerModel restaurant) {
+        ActionEvent event = new ActionEvent(
+                source,
+                ActionEvent.ACTION_PERFORMED,
+                String.valueOf(restaurant.getRestaurant_id()));
+        for (ActionListener listener : menuListeners) {
+            listener.actionPerformed(event);
+        }
     }
 
     private void notifyRefreshListeners(ActionEvent event) {

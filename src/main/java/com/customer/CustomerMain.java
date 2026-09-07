@@ -10,6 +10,7 @@ import com.customer.services.CustomerService;
 import com.customer.views.CustomerView;
 import com.models.UserModel;
 import com.repository.DBStoreManagerRepository;
+import com.repository.DBMenuItemsRepository;
 
 public final class CustomerMain {
 
@@ -25,7 +26,9 @@ public final class CustomerMain {
 
         SwingUtilities.invokeLater(() -> {
             CustomerService customerService =
-                new CustomerService(new DBStoreManagerRepository(dbConnection));
+                new CustomerService(
+                    new DBStoreManagerRepository(dbConnection),
+                    new DBMenuItemsRepository(dbConnection));
             CustomerView customerView = new CustomerView(new ArrayList<>());
             CustomerController customerController =
                 new CustomerController(customerService, customerView);
