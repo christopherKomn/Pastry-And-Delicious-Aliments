@@ -78,24 +78,9 @@ CREATE TABLE restaurants (
     INDEX idx_restaurants_active (is_active, is_accepting_orders)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
-
-
-CREATE TABLE menu_categories (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    restaurant_id INT NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    CONSTRAINT fk_category_restaurant
-        FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
-        ON DELETE CASCADE,
-    INDEX idx_categories_restaurant (restaurant_id)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
-
 CREATE TABLE menu_items (
     id INT PRIMARY KEY AUTO_INCREMENT,
     restaurant_id INT NOT NULL,
-    category_id INT,
     name VARCHAR(255) NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
     description TEXT,
@@ -110,9 +95,6 @@ CREATE TABLE menu_items (
     CONSTRAINT fk_item_restaurant
         FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
         ON DELETE CASCADE,
-    CONSTRAINT fk_item_category
-        FOREIGN KEY (category_id) REFERENCES menu_categories(id)
-        ON DELETE CASCADE,
     CONSTRAINT chk_item_quantity
         CHECK (quantity >= 0),
     CONSTRAINT chk_item_price
@@ -121,7 +103,7 @@ CREATE TABLE menu_items (
         CHECK (discounted_price IS NULL OR (discounted_price >= 0.00 AND discounted_price <= price)),
     CONSTRAINT chk_item_preparation_time
         CHECK (preparation_time IS NULL OR preparation_time >= 0),
-    INDEX idx_items_restaurant_category (restaurant_id, category_id),
+    INDEX idx_items_restaurant (restaurant_id),
     INDEX idx_items_available (is_available),
     INDEX idx_items_price (price)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
@@ -326,35 +308,20 @@ SELECT id,
 FROM users
 WHERE username = 'store_manager';
 
-INSERT INTO menu_categories (restaurant_id, name, description)
-SELECT id, 'Pastries', 'Freshly baked sweet pastries.'
-FROM restaurants
-WHERE name = 'The Pastry Corner';
-
-INSERT INTO menu_categories (restaurant_id, name, description)
-SELECT id, 'Drinks', 'Hot and cold drinks to enjoy with your pastry.'
-FROM restaurants
-WHERE name = 'The Pastry Corner';
-
-INSERT INTO menu_items (restaurant_id, category_id, name, quantity, description, price)
-SELECT restaurant.id, category.id, item.name, item.quantity, item.description, item.price
+INSERT INTO menu_items (restaurant_id, name, quantity, description, price)
+SELECT restaurant.id, item.name, item.quantity, item.description, item.price
 FROM restaurants AS restaurant
-JOIN menu_categories AS category ON category.restaurant_id = restaurant.id
-JOIN (
+CROSS JOIN (
     SELECT 'Croissant' AS name, 25 AS quantity,
-           'Butter croissant baked fresh each morning.' AS description, 3.50 AS price,
-           'Pastries' AS category_name
+           'Butter croissant baked fresh each morning.' AS description, 3.50 AS price
     UNION ALL
     SELECT 'Apple Tart', 20,
-           'Golden apple tart with a flaky pastry crust.', 4.25,
-           'Pastries'
+           'Golden apple tart with a flaky pastry crust.', 4.25
     UNION ALL
     SELECT 'Cappuccino', 30,
-           'Espresso with steamed milk and foam.', 3.75,
-           'Drinks'
+           'Espresso with steamed milk and foam.', 3.75
     UNION ALL
     SELECT 'Iced Tea', 30,
-           'Refreshing house-brewed iced tea.', 2.50,
-           'Drinks'
-) AS item ON item.category_name = category.name
+           'Refreshing house-brewed iced tea.', 2.50
+) AS item
 WHERE restaurant.name = 'The Pastry Corner';

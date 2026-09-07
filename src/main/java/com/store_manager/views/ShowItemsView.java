@@ -38,7 +38,6 @@ public class ShowItemsView extends JPanel {
     private final JButton addItemButton = new JButton("Add Item");
     private final JButton toggleAvailabilityButton = new JButton("Toggle Availability");
     private final JButton removeItemButton = new JButton("Remove Item");
-    private final JButton backButton = new JButton("Back to Store Manager");
     private final JLabel itemCountLabel = new JLabel("No items to display.");
     private final JPanel addItemForm = new JPanel(new BorderLayout(0, 10));
     private final JTextField itemNameInput = new JTextField();
@@ -115,11 +114,6 @@ public class ShowItemsView extends JPanel {
         itemCountLabel.setForeground(TEXT_SECONDARY);
         footer.add(itemCountLabel, BorderLayout.NORTH);
 
-        JPanel navigation = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        navigation.setOpaque(false);
-        navigation.add(backButton);
-        footer.add(navigation, BorderLayout.SOUTH);
-
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         actions.setOpaque(false);
         actions.add(addItemButton);
@@ -153,13 +147,6 @@ public class ShowItemsView extends JPanel {
         for (ActionListener listener : new ArrayList<>(viewShownListeners)) {
             listener.actionPerformed(event);
         }
-    }
-
-    public void addBackListener(ActionListener listener) {
-        backButton.addActionListener(event -> {
-            cancelItemEditing();
-            listener.actionPerformed(event);
-        });
     }
 
     private void configureAddItemForm() {

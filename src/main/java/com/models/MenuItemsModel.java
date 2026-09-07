@@ -1,11 +1,10 @@
 package com.models;
-import java.sql.Timestamp;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 public class MenuItemsModel {
 
     private int item_id;
     private int restaurant_id;
-    private int category_id;
     private String item_name;
     private int item_quantity;
     private String item_description;
@@ -22,11 +21,10 @@ public class MenuItemsModel {
     public MenuItemsModel() {
     }
 
-    public MenuItemsModel(int id, int R_id, int C_id, String Name, int Quantity, String Description, BigDecimal Price, float item_discounted_price,
+    public MenuItemsModel(int id, int R_id, String Name, int Quantity, String Description, BigDecimal Price, float item_discounted_price,
         int Preparation_Time, Boolean active, String Image_Url, int Display_Order, Timestamp Created_at, Timestamp Updated_at) {
         this.item_id = id;
         this.restaurant_id = R_id;
-        this.category_id = C_id;
         this.item_name = Name;
         this.item_quantity = Quantity;
         this.item_description = Description;
@@ -43,7 +41,6 @@ public class MenuItemsModel {
     public MenuItemsModel(MenuItemsModel other) {
         this.item_id = other.item_id;
         this.restaurant_id = other.restaurant_id;
-        this.category_id = other.category_id;
         this.item_name = other.item_name;
         this.item_quantity = other.item_quantity;
         this.item_description = other.item_description;
@@ -74,13 +71,7 @@ public class MenuItemsModel {
         this.restaurant_id = restaurant_id;
     }
 
-    public int getCategory_id() {
-        return category_id;
-    }
 
-    public void setCategory_id(int category_id) {
-        this.category_id = category_id;
-    }
 
     public String getItem_name() {
         return item_name;
