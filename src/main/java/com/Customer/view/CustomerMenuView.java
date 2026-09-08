@@ -51,8 +51,10 @@ public class CustomerMenuView extends JFrame {
     private final int restaurantId;
     private final JPanel productsPanel = new JPanel(new GridLayout(0, 1, 0, 10));
     private final JPanel cartPanel = new JPanel();
-    private final JLabel cartTotalLabel = new JLabel("Total: 0.00 EUR");
+    private final JLabel cartTotalLabel = new JLabel("Total: 0.00 €");
+    private final JButton continueButton = new JButton("Continue");
     private final List<ActionListener> addToCartListeners = new ArrayList<>();
+    private final List<ActionListener> removeFromCartListeners = new ArrayList<>();
     private final Map<Integer, Integer> cartQuantities = new LinkedHashMap<>();
     private final Map<Integer, MenuItemsModel> productsById = new LinkedHashMap<>();
 
@@ -103,8 +105,8 @@ public class CustomerMenuView extends JFrame {
         JPanel cartFooter = new JPanel(new BorderLayout(0, 10));
         cartFooter.setBackground(Color.WHITE);
         cartFooter.add(cartTotalLabel, BorderLayout.NORTH);
-        JButton continueButton = new JButton("Continue");
         styleActionButton(continueButton);
+        continueButton.setVisible(false);
         cartFooter.add(continueButton, BorderLayout.SOUTH);
         cart.add(cartFooter, BorderLayout.SOUTH);
         root.add(cart, BorderLayout.EAST);
@@ -117,6 +119,12 @@ public class CustomerMenuView extends JFrame {
     public void addToCartListener(ActionListener listener) {
         if (listener != null) {
             addToCartListeners.add(listener);
+        }
+    }
+
+    public void removeFromCartListener(ActionListener listener) {
+        if (listener != null) {
+            removeFromCartListeners.add(listener);
         }
     }
 
@@ -148,7 +156,7 @@ public class CustomerMenuView extends JFrame {
         row.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(BORDER),
                 new EmptyBorder(12, 14, 12, 14)));
-        JLabel details = new JLabel(product.getItem_name() + "  -  " + format(product.getItem_price()) + " EUR");
+        JLabel details = new JLabel(product.getItem_name() + "  -  " + format(product.getItem_price()) + " €");
         details.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
         details.setForeground(TEXT);
         JButton addButton = new JButton("Add to cart");
@@ -203,7 +211,7 @@ public class CustomerMenuView extends JFrame {
         productLabel.setForeground(TEXT);
         productLabel.setAlignmentX(LEFT_ALIGNMENT);
 
-        JLabel priceLabel = new JLabel(format(product.getItem_price()) + " EUR");
+        JLabel priceLabel = new JLabel(format(product.getItem_price()) + " €");
         priceLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
         priceLabel.setForeground(PRICE_TEXT);
         priceLabel.setBorder(new EmptyBorder(3, 0, 14, 0));
@@ -278,24 +286,51 @@ public class CustomerMenuView extends JFrame {
         }
     }
 
+    private void notifyRemoveFromCartListeners(MenuItemsModel product) {
+        ActionEvent event = new ActionEvent(
+                this,
+                ActionEvent.ACTION_PERFORMED,
+                String.valueOf(product.getItem_id()));
+        for (ActionListener listener : removeFromCartListeners) {
+            listener.actionPerformed(event);
+        }
+    }
+
     private void refreshCart() {
         cartPanel.removeAll();
         BigDecimal total = BigDecimal.ZERO;
+        boolean hasItems = false;
         for (Map.Entry<Integer, Integer> entry : cartQuantities.entrySet()) {
             MenuItemsModel product = productsById.get(entry.getKey());
-            if (product != null) {
+            if (product != null && entry.getValue() > 0) {
+                hasItems = true;
                 BigDecimal lineTotal = product.getItem_price().multiply(BigDecimal.valueOf(entry.getValue()));
                 total = total.add(lineTotal);
-                JLabel cartItem = new JLabel(entry.getValue() + " x " + product.getItem_name()
-                    + " - " + format(lineTotal) + " EUR");
-                cartItem.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
-                cartItem.setForeground(MUTED);
+                JPanel cartItem = new JPanel(new BorderLayout(6, 0));
+                cartItem.setBackground(Color.WHITE);
                 cartItem.setBorder(new EmptyBorder(6, 2, 6, 2));
                 cartItem.setAlignmentX(LEFT_ALIGNMENT);
+                cartItem.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+                JLabel itemLabel = new JLabel(entry.getValue() + " x " + product.getItem_name()
+                    + " - " + format(lineTotal) + " €");
+                itemLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+                itemLabel.setForeground(MUTED);
+                JButton removeButton = new JButton("🗑");
+                removeButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 21));
+                removeButton.setForeground(ACCENT);
+                removeButton.setBackground(Color.WHITE);
+                removeButton.setPreferredSize(new Dimension(34, 32));
+                removeButton.setFocusPainted(false);
+                removeButton.setBorder(BorderFactory.createEmptyBorder(1, 3, 1, 2));
+                removeButton.setToolTipText("Remove product");
+                removeButton.addActionListener(event -> notifyRemoveFromCartListeners(product));
+                cartItem.add(itemLabel, BorderLayout.CENTER);
+                cartItem.add(removeButton, BorderLayout.EAST);
                 cartPanel.add(cartItem);
             }
         }
-        cartTotalLabel.setText("Total: " + format(total) + " EUR");
+        cartTotalLabel.setText("Total: " + format(total) + " €");
+        continueButton.setVisible(hasItems);
         cartPanel.revalidate();
         cartPanel.repaint();
     }

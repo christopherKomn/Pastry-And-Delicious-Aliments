@@ -48,6 +48,8 @@ public class CustomerController {
             }
             menuView.addToCartListener(
                     itemEvent -> addProductToCart(menuView, cart, productsById, itemEvent));
+                menuView.removeFromCartListener(
+                    itemEvent -> removeProductFromCart(menuView, cart, itemEvent));
             menuView.setProducts(products);
             menuView.setVisible(true);
         }
@@ -79,6 +81,14 @@ public class CustomerController {
         }
 
         cart.put(itemId, requestedQuantity);
+        menuView.setCart(cart);
+    }
+
+    private void removeProductFromCart(
+            CustomerMenuView menuView,
+            Map<Integer, Integer> cart,
+            ActionEvent event) {
+        cart.remove(Integer.parseInt(event.getActionCommand()));
         menuView.setCart(cart);
     }
 
