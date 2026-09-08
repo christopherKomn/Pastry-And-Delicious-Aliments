@@ -67,14 +67,14 @@ public class CustomerController {
 
         if (product == null || requestedQuantity > product.getItem_quantity()) {
             int availableQuantity = product == null
-                    ? 0
-                    : product.getItem_quantity() - currentQuantity;
+                ? 0
+                : product.getItem_quantity() - currentQuantity;
             JOptionPane.showMessageDialog(
-                    menuView,
-                    "Only " + Math.max(availableQuantity, 0)
-                            + " more unit(s) of this product are available.",
-                    "Quantity unavailable",
-                    JOptionPane.WARNING_MESSAGE);
+                menuView,
+                "Only " + Math.max(availableQuantity, 0)
+                    + " more unit(s) of this product are available.",
+                "Quantity unavailable",
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
 

@@ -200,7 +200,7 @@ public class CustomerView extends JFrame {
     private JPanel createCard(StoreManagerModel restaurant) {
         JPanel card = new JPanel(new BorderLayout(0, 14));
         card.setBackground(Color.WHITE);
-        card.setPreferredSize(new Dimension(325, 250));
+        card.setPreferredSize(new Dimension(325, 285));
         card.setBorder(normalBorder());
         card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
@@ -250,6 +250,7 @@ public class CustomerView extends JFrame {
         details.setBackground(Color.WHITE);
         details.setFocusPainted(false);
         details.setBorder(new EmptyBorder(5, 7, 5, 0));
+        details.setPreferredSize(new Dimension(82, 30));
         details.setActionCommand(String.valueOf(restaurant.getRestaurant_id()));
         details.addActionListener(event -> notifyRestaurantListeners(details, restaurant));
         footer.add(details, BorderLayout.EAST);

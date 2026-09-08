@@ -2,10 +2,14 @@ package com.customer.views;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
@@ -17,15 +21,21 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JComponent;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.JTextField;
 import javax.swing.JOptionPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicButtonUI;
 
 import com.models.MenuItemsModel;
 
@@ -34,6 +44,8 @@ public class CustomerMenuView extends JFrame {
     private static final Color TEXT = new Color(48, 40, 36);
     private static final Color MUTED = new Color(116, 103, 96);
     private static final Color ACCENT = new Color(190, 80, 50);
+    private static final Color ACCENT_SOFT = new Color(253, 241, 236);
+    private static final Color PRICE_TEXT = new Color(70, 70, 70);
     private static final Color BORDER = new Color(232, 224, 218);
 
     private final int restaurantId;
@@ -144,18 +156,109 @@ public class CustomerMenuView extends JFrame {
     private void chooseQuantity(MenuItemsModel product) {
         JSpinner quantitySpinner = new JSpinner(
                 new SpinnerNumberModel(1, 1, product.getItem_quantity(), 1));
-        JPanel quantityPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        quantityPanel.add(new JLabel("Quantity for " + product.getItem_name() + ":"));
-        quantityPanel.add(quantitySpinner);
+        quantitySpinner.setEditor(new JSpinner.NumberEditor(quantitySpinner, "0"));
+        quantitySpinner.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
+        quantitySpinner.setPreferredSize(new Dimension(82, 36));
+        quantitySpinner.setBorder(BorderFactory.createLineBorder(BORDER));
+        JComponent spinnerEditor = quantitySpinner.getEditor();
+        if (spinnerEditor instanceof JSpinner.DefaultEditor) {
+            JTextField editor = ((JSpinner.DefaultEditor) spinnerEditor).getTextField();
+            editor.setHorizontalAlignment(JTextField.CENTER);
+            editor.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
+            editor.setEditable(false);
+            editor.setFocusable(false);
+            SwingUtilities.invokeLater(() -> editor.setHorizontalAlignment(SwingConstants.CENTER));
+        }
+        for (Component component : quantitySpinner.getComponents()) {
+            if (component instanceof JButton) {
+                JButton arrowButton = (JButton) component;
+                arrowButton.setBackground(Color.WHITE);
+                arrowButton.setForeground(ACCENT);
+                arrowButton.setPreferredSize(new Dimension(28, 17));
+                arrowButton.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, Color.WHITE));
+                arrowButton.setFocusPainted(false);
+                arrowButton.setContentAreaFilled(true);
+                arrowButton.setOpaque(true);
+                arrowButton.setUI(new SpinnerArrowButtonUI());
+                arrowButton.setIcon(new SpinnerArrowIcon(
+                    arrowButton.getName() != null && arrowButton.getName().contains("next")));
+            }
+        }
 
-        int result = JOptionPane.showConfirmDialog(
-                this,
+        JPanel quantityPanel = new JPanel();
+        quantityPanel.setLayout(new BoxLayout(quantityPanel, BoxLayout.Y_AXIS));
+        quantityPanel.setBackground(Color.WHITE);
+        quantityPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER),
+            new EmptyBorder(16, 18, 16, 18)));
+
+        JLabel productLabel = new JLabel(product.getItem_name());
+        productLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 17));
+        productLabel.setForeground(TEXT);
+        productLabel.setAlignmentX(LEFT_ALIGNMENT);
+
+        JLabel priceLabel = new JLabel(format(product.getItem_price()) + " EUR");
+        priceLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        priceLabel.setForeground(PRICE_TEXT);
+        priceLabel.setBorder(new EmptyBorder(3, 0, 14, 0));
+        priceLabel.setAlignmentX(LEFT_ALIGNMENT);
+
+        JPanel quantityRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        quantityRow.setBackground(ACCENT_SOFT);
+        quantityRow.setBorder(new EmptyBorder(10, 10, 10, 10));
+        quantityRow.setAlignmentX(LEFT_ALIGNMENT);
+        JLabel quantityLabel = new JLabel("Quantity");
+        quantityLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        quantityLabel.setForeground(TEXT);
+        quantityRow.add(quantityLabel);
+        quantityRow.add(quantitySpinner);
+
+        quantityPanel.add(productLabel);
+        quantityPanel.add(priceLabel);
+        quantityPanel.add(quantityRow);
+
+        JOptionPane optionPane = new JOptionPane(
                 quantityPanel,
-                "Add product",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
+                JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.OK_CANCEL_OPTION);
+        JDialog dialog = optionPane.createDialog(this, "Add product");
+        styleOptionPaneButtons(optionPane);
+        dialog.setResizable(false);
+        if (spinnerEditor instanceof JSpinner.DefaultEditor) {
+            ((JSpinner.DefaultEditor) spinnerEditor).getTextField()
+            .setHorizontalAlignment(SwingConstants.CENTER);
+        }
+        dialog.setVisible(true);
+        if (spinnerEditor instanceof JSpinner.DefaultEditor) {
+            ((JSpinner.DefaultEditor) spinnerEditor).getTextField()
+                .setHorizontalAlignment(JTextField.CENTER);
+        }
+        Object selectedValue = optionPane.getValue();
+        int result = selectedValue instanceof Integer
+            ? (Integer) selectedValue
+            : JOptionPane.CLOSED_OPTION;
         if (result == JOptionPane.OK_OPTION) {
             notifyAddToCartListeners(product, (Integer) quantitySpinner.getValue());
+        }
+    }
+
+    private static void styleOptionPaneButtons(Component component) {
+        if (component instanceof JButton
+                && ("OK".equals(((JButton) component).getText())
+                    || "Cancel".equals(((JButton) component).getText()))) {
+            JButton button = (JButton) component;
+            button.setFocusPainted(false);
+            button.setBorderPainted(false);
+            button.setOpaque(true);
+            button.setContentAreaFilled(true);
+            button.setForeground(Color.WHITE);
+            button.setBackground(ACCENT);
+            button.setBorder(BorderFactory.createEmptyBorder(7, 16, 7, 16));
+        }
+        if (component instanceof java.awt.Container) {
+            for (Component child : ((java.awt.Container) component).getComponents()) {
+                styleOptionPaneButtons(child);
+            }
         }
     }
 
@@ -198,6 +301,48 @@ public class CustomerMenuView extends JFrame {
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
         button.setOpaque(true);
+    }
+
+    private static final class SpinnerArrowIcon implements Icon {
+        private final boolean pointsUp;
+
+        private SpinnerArrowIcon(boolean pointsUp) {
+            this.pointsUp = pointsUp;
+        }
+
+        @Override
+        public void paintIcon(Component component, Graphics graphics, int x, int y) {
+            Graphics2D graphics2D = (Graphics2D) graphics.create();
+            graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics2D.setColor(Color.WHITE);
+            int centerX = x + getIconWidth() / 2;
+            int centerY = y + getIconHeight() / 2;
+            int[] xPoints = {centerX - 6, centerX + 6, centerX};
+            int[] yPoints = pointsUp
+                ? new int[] {centerY + 4, centerY + 4, centerY - 4}
+                : new int[] {centerY - 4, centerY - 4, centerY + 4};
+            graphics2D.fillPolygon(xPoints, yPoints, 3);
+            graphics2D.dispose();
+        }
+
+        @Override
+        public int getIconWidth() {
+            return 16;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return 14;
+        }
+    }
+
+    private static final class SpinnerArrowButtonUI extends BasicButtonUI {
+        @Override
+        public void paint(Graphics graphics, JComponent component) {
+            graphics.setColor(Color.WHITE);
+            graphics.fillRect(0, 0, component.getWidth(), component.getHeight());
+            super.paint(graphics, component);
+        }
     }
 
     private static String format(BigDecimal value) {
