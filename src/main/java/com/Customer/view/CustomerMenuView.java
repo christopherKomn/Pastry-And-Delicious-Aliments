@@ -14,9 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -37,6 +35,7 @@ import javax.swing.JOptionPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicButtonUI;
 
+import com.models.CartItem;
 import com.models.MenuItemsModel;
 
 public class CustomerMenuView extends JFrame {
@@ -55,8 +54,6 @@ public class CustomerMenuView extends JFrame {
     private final JButton continueButton = new JButton("Continue");
     private final List<ActionListener> addToCartListeners = new ArrayList<>();
     private final List<ActionListener> removeFromCartListeners = new ArrayList<>();
-    private final Map<Integer, Integer> cartQuantities = new LinkedHashMap<>();
-    private final Map<Integer, MenuItemsModel> productsById = new LinkedHashMap<>();
 
     public CustomerMenuView(int restaurantId, String restaurantName) {
         this.restaurantId = restaurantId;
@@ -70,7 +67,7 @@ public class CustomerMenuView extends JFrame {
         root.setBorder(new EmptyBorder(24, 28, 24, 28));
         setContentPane(root);
 
-        JLabel title = new JLabel(restaurantName + " - Available products");
+        JLabel title = new JLabel(restaurantName + " - Menu");
         title.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
         title.setForeground(TEXT);
         title.setBorder(new EmptyBorder(0, 0, 8, 0));
@@ -130,24 +127,18 @@ public class CustomerMenuView extends JFrame {
 
     public void setProducts(List<MenuItemsModel> products) {
         productsPanel.removeAll();
-        productsById.clear();
         for (MenuItemsModel product : products) {
-            if (Boolean.TRUE.equals(product.getIs_available()) && product.getItem_quantity() > 0) {
-                productsById.put(product.getItem_id(), product);
-                productsPanel.add(createProductRow(product));
-            }
+            productsPanel.add(createProductRow(product));
         }
-        if (productsById.isEmpty()) {
+        if (products.isEmpty()) {
             productsPanel.add(new JLabel("No products available.", SwingConstants.CENTER));
         }
         productsPanel.revalidate();
         productsPanel.repaint();
     }
 
-    public void setCart(Map<Integer, Integer> quantities) {
-        cartQuantities.clear();
-        cartQuantities.putAll(quantities);
-        refreshCart();
+    public void setCart(List<CartItem> cartItems, BigDecimal total) {
+        refreshCart(cartItems, total);
     }
 
     private JPanel createProductRow(MenuItemsModel product) {
@@ -296,22 +287,21 @@ public class CustomerMenuView extends JFrame {
         }
     }
 
-    private void refreshCart() {
+    private void refreshCart(List<CartItem> cartItems, BigDecimal total) {
         cartPanel.removeAll();
-        BigDecimal total = BigDecimal.ZERO;
         boolean hasItems = false;
-        for (Map.Entry<Integer, Integer> entry : cartQuantities.entrySet()) {
-            MenuItemsModel product = productsById.get(entry.getKey());
-            if (product != null && entry.getValue() > 0) {
+        for (CartItem cartItemData : cartItems) {
+            MenuItemsModel product = cartItemData.getProduct();
+            if (product != null && cartItemData.getQuantity() > 0) {
                 hasItems = true;
-                BigDecimal lineTotal = product.getItem_price().multiply(BigDecimal.valueOf(entry.getValue()));
-                total = total.add(lineTotal);
+                BigDecimal lineTotal = product.getItem_price().multiply(
+                        BigDecimal.valueOf(cartItemData.getQuantity()));
                 JPanel cartItem = new JPanel(new BorderLayout(6, 0));
                 cartItem.setBackground(Color.WHITE);
                 cartItem.setBorder(new EmptyBorder(6, 2, 6, 2));
                 cartItem.setAlignmentX(LEFT_ALIGNMENT);
                 cartItem.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-                JLabel itemLabel = new JLabel(entry.getValue() + " x " + product.getItem_name()
+                JLabel itemLabel = new JLabel(cartItemData.getQuantity() + " x " + product.getItem_name()
                     + " - " + format(lineTotal) + " €");
                 itemLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
                 itemLabel.setForeground(MUTED);

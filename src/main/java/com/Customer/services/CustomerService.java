@@ -1,7 +1,9 @@
 package com.customer.services;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import com.models.CartItem;
 import com.models.StoreManagerModel;
 import com.models.MenuItemsModel;
 import com.repository.IMenuItemsRepository;
@@ -27,6 +29,16 @@ public class CustomerService {
     }
 
     public List<MenuItemsModel> getAvailableProducts(int restaurantId) {
-        return menuItemsRepository.findByRestaurantId(restaurantId);
+        return menuItemsRepository.findByRestaurantId(restaurantId).stream()
+                .filter(product -> Boolean.TRUE.equals(product.getIs_available()))
+                .filter(product -> product.getItem_quantity() > 0)
+                .toList();
+    }
+
+    public BigDecimal calculateCartTotal(List<CartItem> cartItems) {
+        return cartItems.stream()
+                .map(cartItem -> cartItem.getProduct().getItem_price()
+                        .multiply(BigDecimal.valueOf(cartItem.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
