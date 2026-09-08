@@ -100,7 +100,13 @@ public class CustomerMenuView extends JFrame {
         cartTotalLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
         cartTotalLabel.setForeground(ACCENT);
         cartTotalLabel.setBorder(new EmptyBorder(10, 0, 0, 0));
-        cart.add(cartTotalLabel, BorderLayout.SOUTH);
+        JPanel cartFooter = new JPanel(new BorderLayout(0, 10));
+        cartFooter.setBackground(Color.WHITE);
+        cartFooter.add(cartTotalLabel, BorderLayout.NORTH);
+        JButton continueButton = new JButton("Continue");
+        styleActionButton(continueButton);
+        cartFooter.add(continueButton, BorderLayout.SOUTH);
+        cart.add(cartFooter, BorderLayout.SOUTH);
         root.add(cart, BorderLayout.EAST);
     }
 
