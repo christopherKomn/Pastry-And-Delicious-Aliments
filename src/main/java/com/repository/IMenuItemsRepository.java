@@ -1,6 +1,7 @@
 package com.repository;
 
 import java.util.List;
+
 import com.models.MenuItemsModel;
 
 public interface IMenuItemsRepository {
@@ -10,4 +11,6 @@ public interface IMenuItemsRepository {
     boolean updatePrice(int itemId, int restaurantId, java.math.BigDecimal price);
     boolean updateQuantity(int itemId, int restaurantId, int quantity);
     boolean updateAvailability(int itemId, int restaurantId, boolean available);
+
+
 }

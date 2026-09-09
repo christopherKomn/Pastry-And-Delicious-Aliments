@@ -16,14 +16,17 @@ import com.repository.IOrderItemsRepository;
 import com.repository.IOrderRepository;
 import com.repository.IStoreManagerRepository;
 import com.repository.IUserRepository;
+import com.store_manager.controllers.OrderController;
 import com.store_manager.controllers.ShowItemsController;
 import com.store_manager.controllers.StoreManagerController;
+import com.store_manager.services.OrderService;
 import com.store_manager.services.ShowItemsService;
 import com.store_manager.services.StoreManagerService;
 import com.store_manager.views.OrderView;
 import com.store_manager.views.ShowItemsView;
 import com.store_manager.views.StoreManagerInfoView;
 import com.store_manager.views.StoreManagerView;
+
 
 public class StoreManagerMain {
     public static void SMMain(String[] args ,Connection dbConnection , UserModel user) {
@@ -73,6 +76,7 @@ public class StoreManagerMain {
         ShowItemsService showItemsService =
             new ShowItemsService(srepo , irepo , ownerStore);
 
+        OrderService orderService = new OrderService(orepo);
         
 
 
@@ -100,6 +104,10 @@ public class StoreManagerMain {
                 storeManagerInfoView , showItemsView , 
                  storeManagerView,storeManagerService ,
                 orderView);
+
+        OrderController orderController = new OrderController(
+            orderService , orderView  
+        );
 
         
 

@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import com.models.CartItem;
-import com.models.StoreManagerModel;
 import com.models.MenuItemsModel;
+import com.models.StoreManagerModel;
 import com.repository.IMenuItemsRepository;
 import com.repository.IStoreManagerRepository;
 
@@ -41,4 +41,6 @@ public class CustomerService {
                         .multiply(BigDecimal.valueOf(cartItem.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+
 }

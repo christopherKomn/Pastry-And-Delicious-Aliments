@@ -2,6 +2,7 @@ package com.store_manager.views;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -12,7 +13,6 @@ import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -20,32 +20,28 @@ import javax.swing.JTextArea;
 
 import com.models.OrderModel;
 
-/** Displays an order and allows its status to be changed. */
+/** Displays an order and exposes actions for handling a pending order. */
 public class OrderView extends JPanel {
-
-    private static final String[] ORDER_STATUSES = {
-        "pending",
-        "confirmed",
-        "preparing",
-        "ready_for_pickup",
-        "on_the_way",
-        "delivered",
-        "cancelled"
-    };
 
     private static final Color BACKGROUND = new Color(245, 247, 250);
     private static final Color TEXT_SECONDARY = new Color(100, 108, 118);
+    private static final Color PENDING_COLOR = new Color(230, 126, 34);
+    private static final Color CONFIRMED_COLOR = new Color(52, 152, 219);
+    private static final Color CANCELLED_COLOR = new Color(192, 57, 43);
+    private static final Color DELIVERED_COLOR = new Color(46, 160, 67);
+    private static final Color IN_PROGRESS_COLOR = new Color(25, 100, 55);
 
     private final JLabel subtotalValue = new JLabel();
     private final JLabel discountValue = new JLabel();
     private final JLabel totalValue = new JLabel();
+    private final JLabel statusValue = new JLabel();
     private final JLabel paymentMethodValue = new JLabel();
     private final JTextArea specialInstructionsValue = new JTextArea();
-    private final JComboBox<String> statusComboBox = new JComboBox<>(ORDER_STATUSES);
+    private final JButton acceptButton = new JButton("Accept \u2713");
+    private final JButton rejectButton = new JButton("Reject \u2715");
     private final JButton orderItemsButton = new JButton("Order Items");
 
     private OrderModel order;
-    private boolean settingOrder;
 
     public OrderView() {
         super(new BorderLayout());
@@ -61,7 +57,8 @@ public class OrderView extends JPanel {
         addReadOnlyField(content, row++, "Subtotal", subtotalValue);
         addReadOnlyField(content, row++, "Discount", discountValue);
         addReadOnlyField(content, row++, "Total amount", totalValue);
-        addField(content, row++, "Status", statusComboBox);
+        statusValue.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        addField(content, row++, "Status", statusValue);
         addReadOnlyField(content, row++, "Payment method", paymentMethodValue);
 
         specialInstructionsValue.setEditable(false);
@@ -73,12 +70,24 @@ public class OrderView extends JPanel {
         specialInstructionsValue.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
         addField(content, row++, "Special instructions", new JScrollPane(specialInstructionsValue));
 
+        acceptButton.setForeground(new Color(30, 130, 60));
+        acceptButton.setFont(acceptButton.getFont().deriveFont(Font.BOLD));
+        rejectButton.setForeground(CANCELLED_COLOR);
+        rejectButton.setFont(rejectButton.getFont().deriveFont(Font.BOLD));
+
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        buttons.setOpaque(false);
+        buttons.add(orderItemsButton);
+        buttons.add(rejectButton);
+        buttons.add(acceptButton);
+
         GridBagConstraints buttonConstraints = new GridBagConstraints();
         buttonConstraints.gridx = 1;
         buttonConstraints.gridy = row;
+        buttonConstraints.fill = GridBagConstraints.HORIZONTAL;
         buttonConstraints.anchor = GridBagConstraints.LINE_END;
         buttonConstraints.insets = new Insets(18, 0, 0, 0);
-        content.add(orderItemsButton, buttonConstraints);
+        content.add(buttons, buttonConstraints);
 
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(BACKGROUND);
@@ -86,47 +95,36 @@ public class OrderView extends JPanel {
         wrapper.add(content, BorderLayout.NORTH);
         add(new JScrollPane(wrapper), BorderLayout.CENTER);
 
-        statusComboBox.addActionListener(event -> {
-            if (!settingOrder && order != null) {
-                order.setStatus((String) statusComboBox.getSelectedItem());
-            }
-            updateOrderItemsButton();
-        });
-
         setTheOrder(null);
     }
 
     /** Replaces the order displayed by this panel. */
     public void setTheOrder(OrderModel order) {
         this.order = order;
-        settingOrder = true;
-        try {
-            boolean hasOrder = order != null;
-            subtotalValue.setText(hasOrder ? formatMoney(order.getSubtotal()) : "-");
-            discountValue.setText(hasOrder ? formatMoney(order.getDiscount_amount()) : "-");
-            totalValue.setText(hasOrder ? formatMoney(order.getTotal_amount()) : "-");
-            paymentMethodValue.setText(hasOrder ? displayValue(order.getPayment_method()) : "-");
-            specialInstructionsValue.setText(
-                    hasOrder ? displayValue(order.getSpecial_instructions()) : "No order selected");
-            statusComboBox.setSelectedItem(hasOrder ? order.getStatus() : null);
-            statusComboBox.setEnabled(hasOrder);
-        } finally {
-            settingOrder = false;
-        }
-        updateOrderItemsButton();
+        boolean hasOrder = order != null;
+        subtotalValue.setText(hasOrder ? formatMoney(order.getSubtotal()) : "-");
+        discountValue.setText(hasOrder ? formatMoney(order.getDiscount_amount()) : "-");
+        totalValue.setText(hasOrder ? formatMoney(order.getTotal_amount()) : "-");
+        paymentMethodValue.setText(hasOrder ? displayValue(order.getPayment_method()) : "-");
+        specialInstructionsValue.setText(
+                hasOrder ? displayValue(order.getSpecial_instructions()) : "No order selected");
+        updateStatus();
+        updateButtons();
     }
 
-    /** Returns the displayed order, including any status selected in the view. */
+    /** Returns the order currently displayed by the view. */
     public OrderModel getTheOrder() {
-        if (order != null) {
-            order.setStatus((String) statusComboBox.getSelectedItem());
-        }
         return order;
     }
 
-    /** Adds code to run whenever the selected order status changes. */
-    public void addStatusChangeListener(ActionListener listener) {
-        statusComboBox.addActionListener(listener);
+    /** Adds code to run when the Accept button is clicked. */
+    public void addAcceptListener(ActionListener listener) {
+        acceptButton.addActionListener(listener);
+    }
+
+    /** Adds code to run when the Reject button is clicked. */
+    public void addRejectListener(ActionListener listener) {
+        rejectButton.addActionListener(listener);
     }
 
     /** Adds code to run when the Order Items button is clicked. */
@@ -134,9 +132,32 @@ public class OrderView extends JPanel {
         orderItemsButton.addActionListener(listener);
     }
 
-    private void updateOrderItemsButton() {
-        orderItemsButton.setEnabled(order != null
-                && "pending".equals(statusComboBox.getSelectedItem()));
+    private void updateButtons() {
+        boolean pending = order != null && "pending".equalsIgnoreCase(order.getStatus());
+        boolean cancelled = order != null && order.getStatus() != null
+                && ("cancelled".equalsIgnoreCase(order.getStatus())
+                    || "canceled".equalsIgnoreCase(order.getStatus()));
+        orderItemsButton.setEnabled(pending);
+        acceptButton.setEnabled(pending);
+        rejectButton.setEnabled(order != null && !cancelled);
+    }
+
+    private void updateStatus() {
+        if (order == null || order.getStatus() == null || order.getStatus().isBlank()) {
+            statusValue.setText("-");
+            statusValue.setForeground(TEXT_SECONDARY);
+            return;
+        }
+
+        String status = order.getStatus();
+        statusValue.setText(status.replace('_', ' '));
+        statusValue.setForeground(switch (status.toLowerCase(Locale.ROOT)) {
+            case "pending" -> PENDING_COLOR;
+            case "confirmed" -> CONFIRMED_COLOR;
+            case "cancelled", "canceled" -> CANCELLED_COLOR;
+            case "delivered" -> DELIVERED_COLOR;
+            default -> IN_PROGRESS_COLOR;
+        });
     }
 
     private static void addReadOnlyField(JPanel panel, int row, String label, JLabel value) {

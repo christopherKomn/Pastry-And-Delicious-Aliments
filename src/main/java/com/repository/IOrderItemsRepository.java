@@ -3,8 +3,8 @@ package com.repository;
 import java.util.List;
 
 import com.ErrorCodes;
+import com.models.MenuItemsModel;
 import com.models.OrderItemsModel;
-
 /**
  * @brief Interface for Order Items Repository
  */
@@ -53,6 +53,6 @@ public interface IOrderItemsRepository {
      */
     ErrorCodes deleteById(int id);
 
-     
+    List<MenuItemsModel> getMenuItemsByOrderItems(List<OrderItemsModel> orderItems);
 
 } 
