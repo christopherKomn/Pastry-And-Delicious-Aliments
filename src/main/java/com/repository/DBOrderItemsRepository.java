@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ErrorCodes;
+import com.models.MenuItemsModel;
 import com.models.OrderItemsModel;
 
 /**
@@ -137,6 +138,40 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
                     : ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
             throw databaseException("delete order item by ID", exception);
+        }
+    }
+
+    @Override
+    public List<MenuItemsModel> getMenuItemsByOrderItems(List<OrderItemsModel> orderItems) {
+        List<MenuItemsModel> menuItems = new ArrayList<>();
+        if (orderItems == null || orderItems.isEmpty()) {
+            return menuItems;
+        }
+
+        String placeholders = String.join(",", java.util.Collections.nCopies(
+                orderItems.size(), "?"));
+        String sql = "SELECT id, restaurant_id, name, price, quantity, is_available "
+                + "FROM menu_items WHERE id IN (" + placeholders + ") ORDER BY id";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            for (int index = 0; index < orderItems.size(); index++) {
+                statement.setInt(index + 1, orderItems.get(index).getMenu_item_id());
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    MenuItemsModel menuItem = new MenuItemsModel();
+                    menuItem.setItem_id(resultSet.getInt("id"));
+                    menuItem.setRestaurant_id(resultSet.getInt("restaurant_id"));
+                    menuItem.setItem_name(resultSet.getString("name"));
+                    menuItem.setItem_price(resultSet.getBigDecimal("price"));
+                    menuItem.setItem_quantity(resultSet.getInt("quantity"));
+                    menuItem.setIs_available(resultSet.getBoolean("is_available"));
+                    menuItems.add(menuItem);
+                }
+            }
+            return menuItems;
+        } catch (SQLException exception) {
+            throw databaseException("find menu items by order items", exception);
         }
     }
 

@@ -125,6 +125,12 @@ public class CustomerMenuView extends JFrame {
         }
     }
 
+    public void addContinueListener(ActionListener listener) {
+        if (listener != null) {
+            continueButton.addActionListener(listener);
+        }
+    }
+
     public void setProducts(List<MenuItemsModel> products) {
         productsPanel.removeAll();
         for (MenuItemsModel product : products) {
