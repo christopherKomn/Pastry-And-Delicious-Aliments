@@ -42,11 +42,13 @@ public class StoreManagerController {
         });
 
         storeManagerView.addCustomerDoubleClickListener(event -> {
+             
              CustomerModel selectedCustomer = storeManagerView.getSelectedCustomer();
              if (selectedCustomer != null) {
                 OrderModel order = service.getOrderByCustomer(selectedCustomer);
                 if (order != null) {
                     orderView.setTheOrder(order);
+                    orderView.setVisible(true);
                     storeManagerView.setMainContent(orderView);
                 } else {
                     storeManagerView.showMessage("No order found for the selected customer.");

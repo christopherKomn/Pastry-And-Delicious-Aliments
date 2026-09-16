@@ -172,6 +172,8 @@ CREATE TABLE order_items (
         ON DELETE CASCADE,
     CONSTRAINT chk_order_item_quantity
         CHECK (quantity > 0),
+    CONSTRAINT uq_order_item
+        UNIQUE (order_id, menu_item_id),
     INDEX idx_order_items_order (order_id),
     INDEX idx_order_items_menu_item (menu_item_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
@@ -264,7 +266,113 @@ BEGIN
     END IF;
 END$$
 
+CREATE TRIGGER trg_order_items_check_and_update_quantity
+BEFORE UPDATE ON order_items
+FOR EACH ROW
+BEGIN
+    DECLARE available_quantity INT DEFAULT NULL;
+    DECLARE quantity_difference INT;
+
+    IF NEW.menu_item_id = OLD.menu_item_id THEN
+        SET quantity_difference = NEW.quantity - OLD.quantity;
+
+        IF quantity_difference > 0 THEN
+            SELECT quantity
+            INTO available_quantity
+            FROM menu_items
+            WHERE id = NEW.menu_item_id
+            FOR UPDATE;
+
+            IF available_quantity IS NULL THEN
+                SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'The referenced menu item does not exist';
+            ELSEIF quantity_difference > available_quantity THEN
+                SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'Insufficient menu item quantity';
+            ELSE
+                UPDATE menu_items
+                SET quantity = quantity - quantity_difference
+                WHERE id = NEW.menu_item_id;
+            END IF;
+        ELSEIF quantity_difference < 0 THEN
+            UPDATE menu_items
+            SET quantity = quantity + ABS(quantity_difference)
+            WHERE id = NEW.menu_item_id;
+        END IF;
+    ELSE
+        SET available_quantity = NULL;
+
+        SELECT quantity
+        INTO available_quantity
+        FROM menu_items
+        WHERE id = NEW.menu_item_id
+        FOR UPDATE;
+
+        IF available_quantity IS NULL THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'The referenced menu item does not exist';
+        ELSEIF NEW.quantity > available_quantity THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Insufficient menu item quantity';
+        ELSE
+            UPDATE menu_items
+            SET quantity = quantity + OLD.quantity
+            WHERE id = OLD.menu_item_id;
+
+            UPDATE menu_items
+            SET quantity = quantity - NEW.quantity
+            WHERE id = NEW.menu_item_id;
+        END IF;
+    END IF;
+END$$
+
+CREATE TRIGGER trg_order_items_restore_quantity_after_delete
+AFTER DELETE ON order_items
+FOR EACH ROW
+BEGIN
+    UPDATE menu_items
+    SET quantity = quantity + OLD.quantity
+    WHERE id = OLD.menu_item_id;
+END$$
+
 DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- Seed users and sample catalogue data for local development.
 INSERT INTO users (email, phone, username, password, user_type , profile_image_url)

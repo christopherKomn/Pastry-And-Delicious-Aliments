@@ -104,7 +104,12 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
 
             return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("save order item", exception);
+            RuntimeException ex =
+             databaseException("save order item", exception);
+
+             System.err.println(ex.getMessage());
+
+             return ErrorCodes.FAILED_TO_WRITE;
         }
     }
 
@@ -119,11 +124,16 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             setOrderItemParameters(statement, orderItem, true);
+            System.out.println(orderItem.toString());
             return statement.executeUpdate() == 0
                     ? ErrorCodes.NOT_FOUND
                     : ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("update order item", exception);
+            RuntimeException ex = databaseException("update order item", exception);
+            System.err.println("Failed: " + ex.getMessage() );
+            //System.err.println(ex.getStackTrace().toString());
+            return ErrorCodes.FAILED_TO_WRITE;
+            
         }
     }
 
@@ -148,31 +158,42 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
             return menuItems;
         }
 
-        String placeholders = String.join(",", java.util.Collections.nCopies(
-                orderItems.size(), "?"));
         String sql = "SELECT id, restaurant_id, name, price, quantity, is_available "
-                + "FROM menu_items WHERE id IN (" + placeholders + ") ORDER BY id";
+                + "FROM menu_items WHERE id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (int index = 0; index < orderItems.size(); index++) {
-                statement.setInt(index + 1, orderItems.get(index).getMenu_item_id());
-            }
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    MenuItemsModel menuItem = new MenuItemsModel();
-                    menuItem.setItem_id(resultSet.getInt("id"));
-                    menuItem.setRestaurant_id(resultSet.getInt("restaurant_id"));
-                    menuItem.setItem_name(resultSet.getString("name"));
-                    menuItem.setItem_price(resultSet.getBigDecimal("price"));
-                    menuItem.setItem_quantity(resultSet.getInt("quantity"));
-                    menuItem.setIs_available(resultSet.getBoolean("is_available"));
-                    menuItems.add(menuItem);
+            for (OrderItemsModel orderItem : orderItems) {
+                if (orderItem == null) {
+                    throw new IllegalArgumentException(
+                            "Order-item list cannot contain null values.");
+                }
+
+                statement.setInt(1, orderItem.getMenu_item_id());
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (!resultSet.next()) {
+                        throw new IllegalStateException(
+                                "Menu item " + orderItem.getMenu_item_id()
+                                        + " referenced by order item "
+                                        + orderItem.getId() + " was not found.");
+                    }
+                    menuItems.add(mapMenuItem(resultSet));
                 }
             }
             return menuItems;
         } catch (SQLException exception) {
             throw databaseException("find menu items by order items", exception);
         }
+    }
+
+    private MenuItemsModel mapMenuItem(ResultSet resultSet) throws SQLException {
+        MenuItemsModel menuItem = new MenuItemsModel();
+        menuItem.setItem_id(resultSet.getInt("id"));
+        menuItem.setRestaurant_id(resultSet.getInt("restaurant_id"));
+        menuItem.setItem_name(resultSet.getString("name"));
+        menuItem.setItem_price(resultSet.getBigDecimal("price"));
+        menuItem.setItem_quantity(resultSet.getInt("quantity"));
+        menuItem.setIs_available(resultSet.getBoolean("is_available"));
+        return menuItem;
     }
 
     private OrderItemsModel mapOrderItem(ResultSet resultSet) throws SQLException {

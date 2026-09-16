@@ -204,4 +204,19 @@ public class OrderItemsModel {
         return selectedOptionsMap != null && selectedOptionsMap.containsKey(key);
     }
 
+    @Override
+    public String toString() {
+        return "OrderItemsModel{"
+                + "id=" + id
+                + ", order_id=" + order_id
+                + ", menu_item_id=" + menu_item_id
+                + ", quantity=" + quantity
+                + ", special_instructions='" + special_instructions + '\''
+                + ", selected_options='" + selected_options + '\''
+                + ", selectedOptionsMap=" + selectedOptionsMap
+                + ", created_at=" + created_at
+                + ", updated_at=" + updated_at
+                + '}';
+    }
+
 }

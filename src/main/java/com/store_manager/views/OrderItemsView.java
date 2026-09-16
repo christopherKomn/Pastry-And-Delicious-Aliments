@@ -4,7 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.HierarchyEvent;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,9 +46,11 @@ public class OrderItemsView extends JPanel {
     private final List<OrderItemsModel> orderItems = new ArrayList<>();
     private final List<MenuItemsModel> menuItems = new ArrayList<>();
     private final List<OrderItemQuantityChangeListener> quantityChangeListeners = new ArrayList<>();
+    private final List<ActionListener> viewShownListeners = new ArrayList<>();
 
     private final OrderItemsTableModel tableModel = new OrderItemsTableModel();
     private final JTable itemsTable = new JTable(tableModel);
+    private final JButton backButton = new JButton("\u2190");
     private final JButton addButton = new JButton("Add");
     private final JButton removeButton = new JButton("Remove");
 
@@ -60,9 +64,21 @@ public class OrderItemsView extends JPanel {
         setBackground(BACKGROUND);
         setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
+        backButton.setToolTipText("Back");
+        backButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 26));
+        backButton.setForeground(new Color(55, 62, 72));
+        backButton.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 14));
+        backButton.setContentAreaFilled(false);
+        backButton.setFocusPainted(false);
+        backButton.setOpaque(false);
+
         JLabel title = new JLabel("Order Items");
         title.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
-        add(title, BorderLayout.NORTH);
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.add(backButton, BorderLayout.WEST);
+        header.add(title, BorderLayout.CENTER);
+        add(header, BorderLayout.NORTH);
 
         itemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         itemsTable.setRowHeight(27);
@@ -79,6 +95,13 @@ public class OrderItemsView extends JPanel {
         actions.add(removeButton);
         actions.add(addButton);
         add(actions, BorderLayout.SOUTH);
+
+        addHierarchyListener(event -> {
+            if ((event.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0
+                    && isShowing()) {
+                notifyViewShownListeners();
+            }
+        });
 
         setOrderItems(orderItems, menuItems);
     }
@@ -122,6 +145,11 @@ public class OrderItemsView extends JPanel {
         return new ArrayList<>(orderItems);
     }
 
+    /** Returns the menu items paired with the displayed order items. */
+    public List<MenuItemsModel> getMenuItems() {
+        return new ArrayList<>(menuItems);
+    }
+
     /** Returns the order item selected in the table, or null if none is selected. */
     public OrderItemsModel getSelectedOrderItem() {
         int row = itemsTable.getSelectedRow();
@@ -148,6 +176,18 @@ public class OrderItemsView extends JPanel {
         removeButton.addActionListener(listener);
     }
 
+    /** Adds code to run when the back arrow is clicked. */
+    public void addBackListener(ActionListener listener) {
+        backButton.addActionListener(listener);
+    }
+
+    /** Adds code to run whenever this panel becomes visible on screen. */
+    public void addViewShownListener(ActionListener listener) {
+        if (listener != null) {
+            viewShownListeners.add(listener);
+        }
+    }
+
     private void updateRemoveButton() {
         removeButton.setEnabled(itemsTable.getSelectedRow() >= 0);
     }
@@ -156,6 +196,16 @@ public class OrderItemsView extends JPanel {
         for (OrderItemQuantityChangeListener listener :
                 new ArrayList<>(quantityChangeListeners)) {
             listener.quantityChanged(orderItem);
+        }
+    }
+
+    private void notifyViewShownListeners() {
+        ActionEvent event = new ActionEvent(
+                this,
+                ActionEvent.ACTION_PERFORMED,
+                "viewShown");
+        for (ActionListener listener : new ArrayList<>(viewShownListeners)) {
+            listener.actionPerformed(event);
         }
     }
 

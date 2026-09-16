@@ -16,12 +16,17 @@ import com.repository.IOrderItemsRepository;
 import com.repository.IOrderRepository;
 import com.repository.IStoreManagerRepository;
 import com.repository.IUserRepository;
+import com.store_manager.controllers.AddOrderItemController;
 import com.store_manager.controllers.OrderController;
+import com.store_manager.controllers.OrderItemsController;
 import com.store_manager.controllers.ShowItemsController;
 import com.store_manager.controllers.StoreManagerController;
+import com.store_manager.services.OrderItemsService;
 import com.store_manager.services.OrderService;
 import com.store_manager.services.ShowItemsService;
 import com.store_manager.services.StoreManagerService;
+import com.store_manager.views.AddOrderItemView;
+import com.store_manager.views.OrderItemsView;
 import com.store_manager.views.OrderView;
 import com.store_manager.views.ShowItemsView;
 import com.store_manager.views.StoreManagerInfoView;
@@ -78,7 +83,11 @@ public class StoreManagerMain {
 
         OrderService orderService = new OrderService(orepo);
         
+        OrderItemsService orderItemsService = 
+        new OrderItemsService(irepo , oirepo , orepo  );
 
+        
+        
 
 
         // views
@@ -94,6 +103,12 @@ public class StoreManagerMain {
         OrderView orderView =
             new OrderView();
 
+        OrderItemsView orderItemsView = new 
+            OrderItemsView();
+
+        AddOrderItemView addOrderItemView = new 
+        AddOrderItemView(storeManagerView);
+
 
         // controllers
         ShowItemsController showItemsController =
@@ -106,9 +121,15 @@ public class StoreManagerMain {
                 orderView);
 
         OrderController orderController = new OrderController(
-            orderService , orderView  
+            orderService , orderView  , orderItemsView , storeManagerView
         );
 
+        OrderItemsController orderItemsController = 
+        new OrderItemsController(orderItemsService , orderItemsView , orderView ,  addOrderItemView,storeManagerView );
+
+        AddOrderItemController addOrderItemController = 
+        new AddOrderItemController(orderItemsService , addOrderItemView , orderView ,orderItemsView , showItemsService);
+        
         
 
         storeManagerView.setVisible(true);
