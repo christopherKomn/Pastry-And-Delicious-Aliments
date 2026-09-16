@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
-import com.customer.services.CustomerCheckoutService;
 import com.customer.services.CustomerMenuService;
 import com.customer.services.CustomerRestaurantService;
 import com.customer.views.CustomerMenuView;
@@ -18,12 +17,10 @@ import com.models.StoreManagerModel;
 public class CustomerMenuController {
     private final CustomerMenuService service;
     private final CustomerRestaurantService restaurantService;
-    private final CustomerCheckoutController checkoutController;
 
     public CustomerMenuController(CustomerMenuService service, CustomerRestaurantService restaurantService) {
         this.service = service;
         this.restaurantService = restaurantService;
-        this.checkoutController = new CustomerCheckoutController(new CustomerCheckoutService());
     }
 
     public void handleMenuSelection(ActionEvent event, CustomerView view) {
@@ -37,8 +34,6 @@ public class CustomerMenuController {
                     itemEvent -> addProductToCart(menuView, cart, products, itemEvent));
             menuView.removeFromCartListener(
                     itemEvent -> removeProductFromCart(menuView, cart, itemEvent));
-                menuView.addContinueListener(
-                    continueEvent -> checkoutController.openCheckout(menuView, cart));
             menuView.setProducts(products);
             menuView.setVisible(true);
         }
