@@ -7,11 +7,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.ErrorCodes;
 import com.models.UserModel;
 
 public class DBUserRepository implements IUserRepository {
+    private static final Logger LOGGER =
+            Logger.getLogger(DBUserRepository.class.getName());
+
     private static final String SELECT_COLUMNS = 
     "id, email, phone, username, password, user_type, "
             + "profile_image_url, created_at";
@@ -21,6 +26,16 @@ public class DBUserRepository implements IUserRepository {
     
 
     public DBUserRepository(Connection connection) {
+        if (connection == null) {
+            LOGGER.severe(
+                "[constructor] Cannot create DBUserRepository: database connection is null"
+            );
+
+            throw new IllegalArgumentException(
+                "Database connection cannot be null"
+            );
+        }
+
         this.connection = connection;
     }
 
@@ -32,10 +47,20 @@ public class DBUserRepository implements IUserRepository {
             statement.setInt(1, id);
 
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? mapUser(resultSet) : null;
+                if (!resultSet.next()) {
+                    LOGGER.fine(() -> "[findUserById] User not found for ID: " + id);
+                    return null;
+                }
+
+                LOGGER.fine(() -> "[findUserById] User found for ID: " + id);
+                return mapUser(resultSet);
             }
         } catch (SQLException exception) {
-            throw databaseException("find user by ID", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findUserById] Could not find user by ID: " + id,
+                    exception);
+            return null;
         }
     }
 
@@ -49,39 +74,68 @@ public class DBUserRepository implements IUserRepository {
             while (resultSet.next()) {
                 users.add(mapUser(resultSet));
             }
+            if (users.size() == 0){
+                LOGGER.fine(() -> "[findAllUser] could not find any user!");
+                return null;
+            }
+            LOGGER.fine(() -> "[findAllUser] found " + users.size() + " users!");
             return users;
         } catch (SQLException exception) {
-            System.out.println( databaseException("find all users", exception).getMessage());
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findAllUser] Database io Could not retreive users",
+                    exception);
             return null;
         }
     }
 
     @Override
     public ErrorCodes saveUser(UserModel user) {
+        if (user == null) {
+            throw new IllegalArgumentException(
+                "user parameter cannot be null"
+            );
+        }
+
         String sql = "INSERT INTO users (email, phone, username, password, user_type, profile_image_url) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement statement = 
+        connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             setUserParameters(statement, user, false);
             if (statement.executeUpdate() == 0) {
+                LOGGER.fine(() -> "[saveUser] could not saved user \"" + user.toString() + " \"");
                 return ErrorCodes.FAILED_TO_WRITE;
             }
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    user.setUserId(generatedKeys.getInt(1));
+                if (!generatedKeys.next()) {
+                    LOGGER.fine(() -> "[saveUser] could not saved user \"" + user.toString() + " \"");
+                    return ErrorCodes.FAILED_TO_WRITE;
                 }
+                
+                user.setUserId(generatedKeys.getInt(1));
+                    LOGGER.fine(() -> "[saveUser] saved user \"" + user.toString() + " \"");
+                return ErrorCodes.SUCCESS;
+                
             }
         } catch (SQLException exception) {
-            System.out.println("Error occurred while saving user: " 
-            + databaseException("save user", exception).getMessage());
-            return ErrorCodes.FAILED_TO_WRITE;
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[saveUser] Database io failed save user \" " + user.toString() + " \"",
+                    exception);
+            return ErrorCodes.IO_ERROR;
         }
-        return ErrorCodes.SUCCESS;
+        
     }
 
     @Override
     public ErrorCodes updateUser(UserModel user) {
+        if (user == null){
+            throw new IllegalArgumentException(
+                "user parameter cannot be null"
+            );
+        }
         String sql = "UPDATE users SET email = ?, phone = ?, username = ?, password = ?, "
                 + "user_type = ?, profile_image_url = ? WHERE id = ?";
 
@@ -89,11 +143,17 @@ public class DBUserRepository implements IUserRepository {
             setUserParameters(statement, user, true);
             int updatedRows = statement.executeUpdate();
             if (updatedRows == 0) {
+                LOGGER.fine(() -> "[updateUser] could not find user \"" + user.toString() + " \"");
                 return ErrorCodes.NOT_FOUND;
             }
+            LOGGER.fine(() -> "[updateUser] user \"" + user.toString() + " \" updated !");
             return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("update user", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[updateUser] Could not write user \" " + user.toString() + " \"",
+                    exception);
+            return ErrorCodes.IO_ERROR;
         }
     }
 
@@ -103,11 +163,21 @@ public class DBUserRepository implements IUserRepository {
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
-            statement.executeUpdate();
+            int updatedRows = statement.executeUpdate();
+            if (updatedRows == 0){
+                LOGGER.fine(() -> "[deleteUserById] could not find user with ID" + id);
+                return ErrorCodes.NOT_FOUND;
+            }
+            LOGGER.fine(() -> "[deleteUserById] user with id " + id + " deleted!");
+            return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("delete user", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[deleteUserById] Could not delete user ID " + id ,
+                    exception);
+
+            return ErrorCodes.IO_ERROR;
         }
-        return ErrorCodes.SUCCESS;
     }
 
     private UserModel mapUser(ResultSet resultSet) throws SQLException {
@@ -137,21 +207,46 @@ public class DBUserRepository implements IUserRepository {
 
     @Override
     public UserModel findByUsername(String username) {
+        if (username == null){
+            throw new IllegalArgumentException(
+                "username parameter cannot be null"
+            );
+        }
         String sql = "SELECT " + SELECT_COLUMNS + " FROM users WHERE username = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, username);
 
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? mapUser(resultSet) : null;
+                UserModel user = resultSet.next() ? mapUser(resultSet) : null;
+                if (user == null){
+                    LOGGER.fine(() -> 
+                    "[findByUsername] could not find user with username \"" + username 
+                     + " \"");
+                    return null;
+                }
+                LOGGER.fine(() -> 
+                "[findByUsername] found user with username \"" + username 
+                 + " \"");
+                return user;
             }
         } catch (SQLException exception) {
-            throw databaseException("find user by username", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findByUsername] failed to retreive user with username \"" + username + "\"",
+                    exception);
+
+            return null;
         }
     }
 
     @Override
     public UserModel findByUsernameAndPassword(String username, String password) {
+        if (username == null || password == null) {
+            throw new IllegalArgumentException(
+                "username or/and password parameters are null"
+            );
+        }
         String sql = "SELECT " + SELECT_COLUMNS + " FROM users WHERE username = ? AND password = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -159,16 +254,28 @@ public class DBUserRepository implements IUserRepository {
             statement.setString(2, password);
 
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? mapUser(resultSet) : null;
+                UserModel user = resultSet.next() ? mapUser(resultSet) : null;
+                if (user == null){
+                    LOGGER.fine(() -> 
+                    "[findByUsernameAndPassword] could not find user with username \"" + username 
+                     + " \"");
+                    return null;
+                }
+                LOGGER.fine(() -> 
+                "[findByUsernameAndPassword] found user with username \"" + username 
+                 + " \"");
+                return user;
             }
         } catch (SQLException exception) {
-            throw databaseException("find user by username and password", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findByUsernameAndPassword] failed to retreive user with username \"" + username + "\"",
+                    exception);
+
+            return null;
         }
     }
 
     
 
-    private RuntimeException databaseException(String operation, SQLException exception) {
-        return new RuntimeException("Could not " + operation, exception);
-    }
 }

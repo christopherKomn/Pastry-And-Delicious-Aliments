@@ -7,11 +7,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.ErrorCodes;
 import com.models.StoreManagerModel;
 
 public class DBStoreManagerRepository implements IStoreManagerRepository {
+    private static final Logger LOGGER =
+            Logger.getLogger(DBStoreManagerRepository.class.getName());
+
     private static final String SELECT_COLUMNS = "id, owner_id, name, description, logo_url, cover_image_url, "
             + "cuisine_type, phone, email, address_line1, address_line2, city, state, postal_code, website, "
             + "is_active, is_accepting_orders, min_order_amount, delivery_fee, rating, total_reviews, "
@@ -20,6 +25,16 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
     private final Connection connection;
 
     public DBStoreManagerRepository(Connection connection) {
+        if (connection == null) {
+            LOGGER.severe(
+                "[constructor] Cannot create DBStoreManagerRepository because the database connection is null."
+            );
+
+            throw new IllegalArgumentException(
+                "Database connection cannot be null"
+            );
+        }
+
         this.connection = connection;
     }
 
@@ -30,10 +45,21 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? mapStoreManager(resultSet) : null;
+                StoreManagerModel store = 
+                resultSet.next() ? mapStoreManager(resultSet) : null;
+                if (store == null){
+                    LOGGER.fine(() -> "[findById] No restaurant was found with ID " + id + ".");
+                    return null;
+                }
+                LOGGER.fine(() -> "[findById] Found restaurant: " + store);
+                return store;
             }
         } catch (SQLException exception) {
-            throw databaseException("find restaurant by ID", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findById] Database error while retrieving restaurant with ID " + id + ".",
+                    exception);
+            return null;
         }
     }
 
@@ -47,14 +73,32 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
             while (resultSet.next()) {
                 storeManagers.add(mapStoreManager(resultSet));
             }
+
+            if (storeManagers.isEmpty() ){
+                LOGGER.fine("[findAll] No restaurants were found.");
+                return null;
+            }
+
+            LOGGER.fine(() -> "[findAll] Retrieved "
+                    + storeManagers.size() + " restaurant(s).");
             return storeManagers;
         } catch (SQLException exception) {
-            throw databaseException("find all restaurants", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findAll] Database error while retrieving all restaurants.",
+                    exception);
+
+            return null;
         }
     }
 
     @Override
     public ErrorCodes save(StoreManagerModel storeManager) {
+        if (storeManager == null){
+            throw new IllegalArgumentException(
+                "storeManager parameter cannot be null"
+            );
+        }
         String sql = "INSERT INTO restaurants (owner_id, name, description, logo_url, cover_image_url, "
                 + "cuisine_type, phone, email, address_line1, address_line2, city, state, postal_code, website, "
                 + "is_active, is_accepting_orders, min_order_amount, delivery_fee) "
@@ -63,23 +107,37 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             setStoreManagerParameters(statement, storeManager, false);
             if (statement.executeUpdate() == 0) {
-                return ErrorCodes.IO_ERROR;
+                LOGGER.warning("[save] Restaurant insert affected no rows: " + storeManager);
+                return ErrorCodes.FAILED_TO_WRITE;
             }
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     storeManager.setRestaurant_id(generatedKeys.getInt(1));
+                    LOGGER.fine(() -> "[save] Restaurant saved successfully: " + storeManager);
+                    return ErrorCodes.SUCCESS;
                 }else {
-                    return ErrorCodes.NOT_FOUND;
+                    LOGGER.warning("[save] Restaurant was inserted, but no generated ID was returned: "
+                            + storeManager);
+                    return ErrorCodes.FAILED_TO_WRITE;
                 }
             }
         } catch (SQLException exception) {
-            throw databaseException("save restaurant", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[save] Database error while saving restaurant: " + storeManager,
+                    exception);
+            return ErrorCodes.IO_ERROR;
         }
-        return ErrorCodes.SUCCESS;
     }
 
     @Override
     public ErrorCodes update(StoreManagerModel storeManager) {
+        if (storeManager == null){
+            throw new IllegalArgumentException(
+                "storeManager parameter cannot be null"
+            );
+        }
+
         String sql = "UPDATE restaurants SET owner_id = ?, name = ?, description = ?, logo_url = ?, "
                 + "cover_image_url = ?, cuisine_type = ?, phone = ?, email = ?, address_line1 = ?, "
                 + "address_line2 = ?, city = ?, state = ?, postal_code = ?, website = ?, is_active = ?, "
@@ -88,12 +146,20 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             setStoreManagerParameters(statement, storeManager, true);
             if (statement.executeUpdate() == 0) {
+                LOGGER.fine(() -> "[update] No restaurant was found with ID "
+                        + storeManager.getRestaurant_id() + ".");
                 return ErrorCodes.NOT_FOUND;
             }
+            LOGGER.fine(() -> "[update] Restaurant updated successfully: " + storeManager);
+            return ErrorCodes.SUCCESS;
+            
         } catch (SQLException exception) {
-            throw databaseException("update restaurant", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[update] Database error while updating restaurant: " + storeManager,
+                    exception);
+            return ErrorCodes.IO_ERROR;
         }
-        return ErrorCodes.SUCCESS;
     }
 
     @Override
@@ -104,12 +170,18 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
             statement.setInt(1, id);
             statement.executeUpdate();
             if (statement.getUpdateCount() == 0) {
+                LOGGER.fine(() -> "[deleteById] No restaurant was found with ID " + id + ".");
                 return ErrorCodes.NOT_FOUND;
             }
+            LOGGER.fine(() -> "[deleteById] Deleted restaurant with ID " + id + ".");
+            return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("delete restaurant by id " + id, exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[deleteById] Database error while deleting restaurant with ID " + id + ".",
+                    exception);
+            return ErrorCodes.IO_ERROR;
         }
-        return ErrorCodes.SUCCESS;
     }
 
     @Override
@@ -119,10 +191,23 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, ownerId);
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? mapStoreManager(resultSet) : null;
+                StoreManagerModel store = resultSet.next() ? mapStoreManager(resultSet) : null;
+                if (store == null){
+                    LOGGER.fine(() -> "[findByOwnerId] No restaurant was found for owner ID "
+                            + ownerId + ".");
+                    return null;
+                }
+                LOGGER.fine(() -> "[findByOwnerId] Found restaurant for owner ID "
+                        + ownerId + ": " + store);
+                return store;
             }
         } catch (SQLException exception) {
-            throw databaseException("find restaurant by owner ID", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findByOwnerId] Database error while retrieving restaurant for owner ID "
+                            + ownerId + ".",
+                    exception);
+            return null;
         }
     }
 
@@ -132,14 +217,34 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
         String sql = "DELETE FROM restaurants WHERE owner_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, ownerId);
-            return statement.executeUpdate() == 0 ? ErrorCodes.NOT_FOUND : ErrorCodes.SUCCESS;
+            int updateCount = statement.executeUpdate();
+            if (updateCount == 0){
+                LOGGER.fine(() -> "[deleteByOwnerId] No restaurants were found for owner ID "
+                        + ownerId + ".");
+                return ErrorCodes.NOT_FOUND;
+            }
+            LOGGER.fine(() -> "[deleteByOwnerId] Deleted " + updateCount
+                    + " restaurant(s) for owner ID " + ownerId + ".");
+            return  ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("delete restaurant by owner ID", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[deleteByOwnerId] Database error while deleting restaurants for owner ID "
+                            + ownerId + ".",
+                    exception);
+
+            return ErrorCodes.IO_ERROR;
         }
     }
 
     @Override
     public StoreManagerModel findByNCAP(String name, String city, String addressLine1, String postalCode) {
+        if ( (name == null) || (city == null) || (addressLine1 == null) || (postalCode == null)){
+            throw new IllegalArgumentException(
+                "name or/and city or/and address or/and postalCode parameters are null"
+            );
+        }
+
         String sql = "SELECT " + SELECT_COLUMNS + " FROM restaurants WHERE name = ? AND city = ? AND address_line1 = ? AND postal_code = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -149,10 +254,25 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
             statement.setString(4, postalCode);
 
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? mapStoreManager(resultSet) : null;
+                StoreManagerModel store = resultSet.next() ? mapStoreManager(resultSet) : null;
+                if (store == null){
+                    LOGGER.fine(() -> "[findByNCAP] No restaurant matched name='" + name
+                            + "', city='" + city + "', address='" + addressLine1
+                            + "', postalCode='" + postalCode + "'.");
+                    return null;
+                }
+                LOGGER.fine(() -> "[findByNCAP] Found restaurant: " + store);
+                return store;
             }
         } catch (SQLException exception) {
-            throw databaseException("find restaurant by NCAP", exception);
+           LOGGER.log(
+                    Level.SEVERE,
+                    "[findByNCAP] Database error while retrieving restaurant with name='"
+                            + name + "', city='" + city + "', address='" + addressLine1
+                            + "', postalCode='" + postalCode + "'.",
+                    exception);
+
+            return null;
         }
     }
 
@@ -208,7 +328,4 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
         }
     }
 
-    private RuntimeException databaseException(String operation, SQLException exception) {
-        return new RuntimeException("Could not " + operation, exception);
-    }   
 }

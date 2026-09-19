@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.ErrorCodes;
 import com.models.MenuItemsModel;
@@ -16,7 +18,9 @@ import com.models.OrderItemsModel;
  * MySQL implementation of {@link IOrderItemsRepository}.
  */
 public class DBOrderItemsRepository implements IOrderItemsRepository {
-
+    private static final Logger LOGGER =
+            Logger.getLogger(DBOrderItemsRepository.class.getName());
+            
     private static final String SELECT_COLUMNS =
             "id, order_id, menu_item_id, quantity, special_instructions, selected_options";
 
@@ -24,6 +28,9 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
 
     public DBOrderItemsRepository(Connection connection) {
         if (connection == null) {
+            LOGGER.severe(
+                "[constructor] Cannot create DBOrderItemsRepository because the database connection is null."
+            );
             throw new IllegalArgumentException("Connection cannot be null.");
         }
         this.connection = connection;
@@ -36,10 +43,21 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? mapOrderItem(resultSet) : null;
+                OrderItemsModel orderItem = resultSet.next() ? mapOrderItem(resultSet) : null;
+                if (orderItem == null)
+                {
+                    LOGGER.fine(() -> "[findById] order item with id  : " + id + " is not found !");
+                    return null;
+                }
+                LOGGER.fine(() -> "[findById] order item " + orderItem + " found !");
+                return orderItem;
             }
         } catch (SQLException exception) {
-            throw databaseException("find order item by ID", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findById] Database error while searching order item with ID " + id + ".",
+                    exception);
+            return null;
         }
     }
 
@@ -53,9 +71,19 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
             while (resultSet.next()) {
                 orderItems.add(mapOrderItem(resultSet));
             }
+
+            if (orderItems.isEmpty()){
+                LOGGER.fine(() -> "[findById] order items not found !");
+                return null;
+            }
+            LOGGER.fine(() -> "[findById] found total " + orderItems.size() + " order items !");
             return orderItems;
         } catch (SQLException exception) {
-            throw databaseException("find all order items", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findAll] Database error while searching order items .",
+                    exception);
+            return null;
         }
     }
 
@@ -72,9 +100,18 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
                     orderItems.add(mapOrderItem(resultSet));
                 }
             }
+            if (orderItems.isEmpty()){
+                LOGGER.fine(() -> "[findById] order items not found for Order with ID " + orderId + "!");
+                return null;
+            }
+            LOGGER.fine(() -> "[findById] found total " + orderItems.size() + " order items for Order with ID " + orderId + "!");
             return orderItems;
         } catch (SQLException exception) {
-            throw databaseException("find order items by order ID", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findAll] Database error while searching order items for Order with ID : " + orderId + ".",
+                    exception);
+            return null;
         }
     }
 
@@ -104,12 +141,12 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
 
             return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            RuntimeException ex =
-             databaseException("save order item", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findAll] Database error while saving order item \"" + orderItem + "\".",
+                    exception);
 
-             System.err.println(ex.getMessage());
-
-             return ErrorCodes.FAILED_TO_WRITE;
+             return ErrorCodes.IO_ERROR;
         }
     }
 

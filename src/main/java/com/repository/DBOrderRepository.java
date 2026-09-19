@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.ErrorCodes;
 import com.models.CustomerModel;
@@ -18,7 +20,9 @@ import com.models.StoreManagerModel;
  * MySQL implementation of {@link IOrderRepository}.
  */
 public class DBOrderRepository implements IOrderRepository {
-
+    private static final Logger LOGGER =
+            Logger.getLogger(DBOrderRepository.class.getName());
+            
     private static final String SELECT_COLUMNS =
             "id, customer_id, restaurant_id, status, subtotal, discount_amount, "
                     + "total_amount, payment_method, special_instructions, actual_delivery_time, "
@@ -30,6 +34,9 @@ public class DBOrderRepository implements IOrderRepository {
 
     public DBOrderRepository(Connection connection) {
         if (connection == null) {
+            LOGGER.severe(
+                "[constructor] Cannot create DBOrderRepository because the database connection is null."
+            );
             throw new IllegalArgumentException("Connection cannot be null.");
         }
 
@@ -41,7 +48,9 @@ public class DBOrderRepository implements IOrderRepository {
     @Override
     public ErrorCodes save(OrderModel order) {
         if (order == null) {
-            return ErrorCodes.BAD_TYPE;
+            throw new IllegalArgumentException(
+                "order cannot be null"
+            );
         }
 
         String sql = "INSERT INTO orders (customer_id, restaurant_id, status, subtotal, "
@@ -54,26 +63,36 @@ public class DBOrderRepository implements IOrderRepository {
             setOrderParameters(statement, order, false);
 
             if (statement.executeUpdate() == 0) {
+                LOGGER.fine(() -> "[save] io write error , can't write order : " + order);
                 return ErrorCodes.FAILED_TO_WRITE;
             }
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (!generatedKeys.next()) {
+                    LOGGER.fine(() -> "[save] io write error , can't write order : " + order);
                     return ErrorCodes.FAILED_TO_WRITE;
                 }
+                LOGGER.fine(() -> "[save] order : " + order + " is saved !");
                 order.setId(generatedKeys.getInt(1));
+                return ErrorCodes.SUCCESS;
             }
 
-            return ErrorCodes.SUCCESS;
+            
         } catch (SQLException exception) {
-            throw databaseException("save order", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[save] Database error while saving order " + order + ".",
+                    exception);
+            return ErrorCodes.IO_ERROR;
         }
     }
 
     @Override
     public ErrorCodes update(OrderModel order) {
         if (order == null) {
-            return ErrorCodes.BAD_TYPE;
+            throw new IllegalArgumentException(
+                "order cannot be null"
+            );
         }
 
         String sql = "UPDATE orders SET customer_id = ?, restaurant_id = ?, status = ?, "
@@ -83,37 +102,58 @@ public class DBOrderRepository implements IOrderRepository {
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             setOrderParameters(statement, order, true);
-            return statement.executeUpdate() == 0
-                    ? ErrorCodes.NOT_FOUND
-                    : ErrorCodes.SUCCESS;
+            if (statement.executeUpdate() == 0){
+                LOGGER.fine(() -> "[update] can't find order : " + order);
+                return ErrorCodes.NOT_FOUND;
+            }
+            LOGGER.fine(() -> "[update]  order : " + order + " is updated! ");
+            return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("update order", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[update] Database error while updating order " + order + ".",
+                    exception);
+            return ErrorCodes.IO_ERROR;
         }
     }
 
     @Override
     public OrderModel findById(Long id) {
         if (id == null) {
-            return null;
+            throw new IllegalArgumentException(
+                "id cannot be null"
+            );
         }
 
         String sql = "SELECT " + SELECT_COLUMNS + " FROM orders WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? mapOrder(resultSet) : null;
+                OrderModel order = resultSet.next() ? mapOrder(resultSet) : null;
+                if (order == null){
+                    LOGGER.fine(() -> "[findById]  cannot find by id : " + id + " order ");
+                    return null;
+                }
+                LOGGER.fine(() -> "[findById] order : " + order + " retreived !");
+                return order;
             }
         } catch (SQLException exception) {
-            throw databaseException("find order by ID", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findById] Database error while searching order with id " + id + ".",
+                    exception);
+            return null;
         }
     }
 
+    // To change on the future , should not use other repos
     @Override
     public CustomerModel findCustomerById(Long id) {
         Integer customerId = findRelatedId(id, "customer_id");
         return customerId == null ? null : customerRepository.findById(customerId);
     }
 
+    // To change on the future , should not use other repos
     @Override
     public StoreManagerModel findRestaurantById(Long id) {
         Integer restaurantId = findRelatedId(id, "restaurant_id");
@@ -123,17 +163,26 @@ public class DBOrderRepository implements IOrderRepository {
     @Override
     public ErrorCodes deleteById(Long id) {
         if (id == null) {
-            return ErrorCodes.NOT_FOUND;
+            throw new IllegalArgumentException(
+                "id cannot be null"
+            );
         }
 
         String sql = "DELETE FROM orders WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
-            return statement.executeUpdate() == 0
-                    ? ErrorCodes.NOT_FOUND
-                    : ErrorCodes.SUCCESS;
+            if (statement.executeUpdate() == 0){
+                LOGGER.fine(() -> "[deleteById]  cannot find by id : " + id + " order ");
+                return ErrorCodes.NOT_FOUND;
+            }
+            LOGGER.fine(() -> "[findById] order with id " + id + " deleted !");
+            return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("delete order by ID", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[deleteById] Database error while searching order with id " + id + ".",
+                    exception);
+            return ErrorCodes.IO_ERROR;
         }
     }
 
@@ -142,7 +191,9 @@ public class DBOrderRepository implements IOrderRepository {
             CustomerModel customer,
             StoreManagerModel restaurant) {
         if (customer == null || restaurant == null) {
-            return null;
+            throw new IllegalArgumentException(
+                "restaurant or/and customer are null"
+            );
         }
 
         String sql = "SELECT " + SELECT_COLUMNS + " FROM orders "
@@ -153,10 +204,25 @@ public class DBOrderRepository implements IOrderRepository {
             statement.setInt(1, customer.getId());
             statement.setInt(2, restaurant.getRestaurant_id());
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? mapOrder(resultSet) : null;
+                OrderModel order =  resultSet.next() ? mapOrder(resultSet) : null;
+                if (order == null){
+                    LOGGER.fine(() -> "[findByCustomerRestaurant] "+
+                    "no order found related with customer \""+customer + 
+                    "\" and store manager \"" + restaurant + ".");
+                    return null;
+                }
+                LOGGER.fine(() -> "[findByCustomerRestaurant] "+
+                "order \"" + order + "\" found related with customer \""+customer + 
+                "\" and store manager \"" + restaurant + ".");
+                return order;
             }
         } catch (SQLException exception) {
-            throw databaseException("find order by customer and restaurant", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findByCustomerRestaurant] Database error while searching for order related with "
+                     + "customer \"" + customer + "\" and restaurant \"" + restaurant + ".",
+                    exception);
+            return null;
         }
     }
 
@@ -174,7 +240,9 @@ public class DBOrderRepository implements IOrderRepository {
     public List<OrderItemsModel> findAllOrderItemsByOrderId(Long orderId) {
         List<OrderItemsModel> orderItems = new ArrayList<>();
         if (orderId == null) {
-            return orderItems;
+            throw new IllegalArgumentException(
+                "orderId is null"
+            );
         }
 
         String sql = "SELECT id, order_id, menu_item_id, quantity, "
@@ -195,9 +263,22 @@ public class DBOrderRepository implements IOrderRepository {
                     orderItems.add(item);
                 }
             }
+            if (orderItems.isEmpty()){
+                LOGGER.fine(() -> "[findAllOrderItemsByOrderId]  cannot find order items or order with related " +
+                " order Id : " + orderId + " . ");
+                return null;
+            }
+            LOGGER.fine(() -> "[findAllOrderItemsByOrderId]  found total order items " + 
+            orderItems.size() +" with related " +
+            " order Id : " + orderId + " . ");
             return orderItems;
         } catch (SQLException exception) {
-            throw databaseException("find order items by order ID", exception);
+            LOGGER.log(
+                Level.SEVERE,
+                "[findAllOrderItemsByOrderId] Database error while searching order items of order id " + orderId + ".",
+                exception
+            );
+            return null;
         }
     }
 
@@ -211,16 +292,44 @@ public class DBOrderRepository implements IOrderRepository {
             while (resultSet.next()) {
                 orders.add(mapOrder(resultSet));
             }
+            if (orders.isEmpty()){
+                LOGGER.fine(() -> "[findAll]  cannot find orders . ");
+                return null;
+            }
+            LOGGER.fine(() -> "[findAll]  found total " + orders.size() + " orders . ");
             return orders;
         } catch (SQLException exception) {
-            throw databaseException("find all orders", exception);
+            LOGGER.log(
+                Level.SEVERE,
+                "[findAll] Database error while searching orders .",
+                exception
+            );
+            return null;
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     private List<OrderModel> findByRelatedId(Long relatedId, String columnName) {
         List<OrderModel> orders = new ArrayList<>();
-        if (relatedId == null) {
-            return orders;
+        if (relatedId == null || columnName == null) {
+            throw new IllegalArgumentException(
+                "relatedId or columnName is null"
+            );
         }
 
         // columnName is supplied only by this class, not by external input.
@@ -234,15 +343,27 @@ public class DBOrderRepository implements IOrderRepository {
                     orders.add(mapOrder(resultSet));
                 }
             }
+            if (orders.isEmpty()){
+                LOGGER.fine(() -> "[findByRelatedId]  cannot find orders . ");
+                return null;
+            }
+            LOGGER.fine(() -> "[findByRelatedId]  found total " + orders.size() + " orders . ");
             return orders;
         } catch (SQLException exception) {
-            throw databaseException("find orders by " + columnName, exception);
+            LOGGER.log(
+                Level.SEVERE,
+                "[findByRelatedId] Database error while searching orders .",
+                exception
+            );
+            return null;
         }
     }
 
     private Integer findRelatedId(Long orderId, String columnName) {
-        if (orderId == null) {
-            return null;
+        if (orderId == null || columnName == null) {
+            throw new IllegalArgumentException(
+                "relatedId or columnName is null"
+            );
         }
 
         // columnName is supplied only by this class, not by external input.
@@ -250,12 +371,27 @@ public class DBOrderRepository implements IOrderRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, orderId);
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? resultSet.getInt(columnName) : null;
+                Integer res = resultSet.next() ? resultSet.getInt(columnName) : null;
+                if (res == null){
+                    LOGGER.fine(() -> "[findRelatedId]  could not find  a \"" + columnName + " from order id " + 
+                orderId);
+                    return null;
+                }
+                LOGGER.fine(() -> "[findRelatedId]  found  a \"" + columnName + " from order id " + 
+                orderId);
+                return res;
             }
         } catch (SQLException exception) {
-            throw databaseException("find " + columnName + " for order", exception);
+            LOGGER.log(
+                Level.SEVERE,
+                "[findRelatedId] Database error while searching orders .",
+                exception
+            );
+            return null;
         }
     }
+
+
 
     private void setOrderParameters(
             PreparedStatement statement,

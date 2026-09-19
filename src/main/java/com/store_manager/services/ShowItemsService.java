@@ -26,8 +26,10 @@ public class ShowItemsService {
      * @param itemsRepository The repository for managing menu items
      * @param ownerId The ID of the signed-in owner
      */
-    public ShowItemsService(IStoreManagerRepository storeRepository,
-            IMenuItemsRepository itemsRepository , StoreManagerModel ownerStore ) {
+    public ShowItemsService(
+            IStoreManagerRepository storeRepository,
+            IMenuItemsRepository itemsRepository , 
+            StoreManagerModel ownerStore ) {
         this.storeRepository = storeRepository;
         this.itemsRepository = itemsRepository;
         this.ownerStore = ownerStore;
@@ -35,13 +37,20 @@ public class ShowItemsService {
     }
 
     /**
-     * @brief Retrieves items belonging to the owner's store
+     * @brief Retrieves menu items belonging to the owner's store
      * @return The items, or null if no store is linked to the owner
-     * @throws RuntimeException If the repository cannot retrieve the data
+     * 
      */
     public List<MenuItemsModel> getItems() {
-        StoreManagerModel store = storeRepository.findByOwnerId(ownerId);
-        return store == null ? null : itemsRepository.findByRestaurantId(store.getRestaurant_id());
+        StoreManagerModel store = ownerStore;
+        List<MenuItemsModel> ls ;
+        try {
+            ls = itemsRepository.findByRestaurantId(store.getRestaurant_id());
+            return ls;
+        } catch (Exception e) {
+            return null;
+        }
+        
     }
 
     /**
@@ -56,15 +65,24 @@ public class ShowItemsService {
     public ErrorCodes addItem(String nameInput, String priceInput, String quantityInput, boolean available) {
         if (nameInput == null || priceInput == null || quantityInput == null)
             return ErrorCodes.NULL_VALUE;
-        String name = nameInput.trim();
+
+        String name = nameInput;
         BigDecimal price = parsePrice(priceInput);
         Integer quantity = parseQuantity(quantityInput);
-        if (name.isEmpty() || name.codePointCount(0, name.length()) > 255 || price == null || quantity == null)
+        if (
+            name.isEmpty() || name.codePointCount(0, name.length()) > 255 || 
+            price == null || quantity == null)
+        {
             return ErrorCodes.BAD_TYPE;
+        }
+            
+
+
         try {
             StoreManagerModel store = storeRepository.findByOwnerId(ownerId);
             if (store == null)
                 return ErrorCodes.NOT_FOUND;
+
             MenuItemsModel item = new MenuItemsModel();
             item.setRestaurant_id(store.getRestaurant_id());
             item.setItem_name(name);
