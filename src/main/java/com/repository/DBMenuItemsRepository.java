@@ -7,10 +7,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import com.models.MenuItemsModel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.ErrorCodes;
+import com.models.MenuItemsModel;
 
 public class DBMenuItemsRepository implements IMenuItemsRepository {
+    private static final Logger LOGGER =
+            Logger.getLogger(DBMenuItemsRepository.class.getName());
+
     private final Connection connection;
 
     public DBMenuItemsRepository(Connection connection) {
@@ -27,6 +33,8 @@ public class DBMenuItemsRepository implements IMenuItemsRepository {
             statement.setInt(2, restaurantId);
             return statement.executeUpdate() == 1 ? ErrorCodes.SUCCESS : ErrorCodes.FAILED_TO_WRITE;
         } catch (SQLException exception) {
+            LOGGER.log(Level.SEVERE, "[deleteItem] Could not delete menu item " + itemId
+                    + " from restaurant " + restaurantId, exception);
             return ErrorCodes.IO_ERROR;
         }
     }
@@ -55,6 +63,8 @@ public class DBMenuItemsRepository implements IMenuItemsRepository {
             statement.setInt(3, restaurantId);
             return statement.executeUpdate() == 1 ? ErrorCodes.SUCCESS : ErrorCodes.NOT_FOUND;
         } catch (SQLException exception) {
+            LOGGER.log(Level.SEVERE, "[updateField] Could not update " + column
+                    + " for menu item " + itemId + " in restaurant " + restaurantId, exception);
             return ErrorCodes.IO_ERROR;
         }
     }
@@ -81,6 +91,8 @@ public class DBMenuItemsRepository implements IMenuItemsRepository {
             }
             return items;
         } catch (SQLException exception) {
+            LOGGER.log(Level.SEVERE, "[findByRestaurantId] Could not load menu items for restaurant "
+                    + restaurantId, exception);
             throw new RuntimeException("Could not load store items.", exception);
         }
     }
@@ -106,6 +118,8 @@ public class DBMenuItemsRepository implements IMenuItemsRepository {
                 }
             }
         } catch (SQLException exception) {
+            LOGGER.log(Level.SEVERE, "[save] Could not save menu item for restaurant "
+                    + item.getRestaurant_id(), exception);
             return ErrorCodes.IO_ERROR;
         }
         return ErrorCodes.SUCCESS;
