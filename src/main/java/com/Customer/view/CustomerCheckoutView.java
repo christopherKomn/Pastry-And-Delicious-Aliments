@@ -83,6 +83,7 @@ public class CustomerCheckoutView extends JFrame {
                 "Choose Cash or Card");
         styleLargeButton(placeOrderButton, "Place Order", "Send your order");
         placeOrderButton.setText("Place Order");
+        placeOrderButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
         Dimension placeOrderSize = new Dimension(510, 60);
         placeOrderButton.setPreferredSize(placeOrderSize);
         placeOrderButton.setMaximumSize(placeOrderSize);
