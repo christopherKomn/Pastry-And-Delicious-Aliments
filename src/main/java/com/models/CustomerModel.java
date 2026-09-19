@@ -99,4 +99,18 @@ public class CustomerModel {
     public void setAddress_line2(String address_line2) {
         this.address_line2 = address_line2;
     }
+
+    @Override
+    public String toString() {
+        return "CustomerModel{"
+                + "id=" + id
+                + ", user_id=" + user_id
+                + ", fullname=" + fullname
+                + ", city=" + city
+                + ", state=" + state
+                + ", postal_code=" + postal_code
+                + ", address_line1=" + address_line1
+                + ", address_line2=" + address_line2
+                + '}';
+    }
 }

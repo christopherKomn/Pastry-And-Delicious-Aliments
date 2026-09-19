@@ -12,6 +12,7 @@ public class Main {
     private static final String DATABASE_URL = "jdbc:mysql://localhost:3306/pastry_db";
 
     public static void main(String[] args) {
+        
         String username = System.getenv().getOrDefault("MYSQL_USER", "root");
         String password = System.getenv().getOrDefault("MYSQL_PWD", "");
 

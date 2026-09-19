@@ -281,4 +281,33 @@ public class StoreManagerModel {
     private static Timestamp copyTimestamp(Timestamp value) {
         return value == null ? null : (Timestamp) value.clone();
     }
+
+    @Override
+    public String toString() {
+        return "StoreManagerModel{"
+                + "restaurant_id=" + restaurant_id
+                + ", owner_id=" + owner_id
+                + ", name=" + name
+                + ", description=" + description
+                + ", logo_url=" + logo_url
+                + ", cover_image_url=" + cover_image_url
+                + ", cuisine_type=" + cuisine_type
+                + ", phone=" + phone
+                + ", email=" + email
+                + ", address_line1=" + address_line1
+                + ", address_line2=" + address_line2
+                + ", city=" + city
+                + ", state=" + state
+                + ", postal_code=" + postal_code
+                + ", website=" + website
+                + ", is_active=" + is_active
+                + ", is_accepting_orders=" + is_accepting_orders
+                + ", min_order_amount=" + min_order_amount
+                + ", delivery_fee=" + delivery_fee
+                + ", rating=" + rating
+                + ", total_reviews=" + total_reviews
+                + ", created_at=" + created_at
+                + ", updated_at=" + updated_at
+                + '}';
+    }
 }

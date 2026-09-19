@@ -46,10 +46,10 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
                 OrderItemsModel orderItem = resultSet.next() ? mapOrderItem(resultSet) : null;
                 if (orderItem == null)
                 {
-                    LOGGER.fine(() -> "[findById] order item with id  : " + id + " is not found !");
+                    LOGGER.warning(() -> "[findById] order item with id  : " + id + " is not found !");
                     return null;
                 }
-                LOGGER.fine(() -> "[findById] order item " + orderItem + " found !");
+                LOGGER.info(() -> "[findById] order item " + orderItem + " found !");
                 return orderItem;
             }
         } catch (SQLException exception) {
@@ -73,10 +73,10 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
             }
 
             if (orderItems.isEmpty()){
-                LOGGER.fine(() -> "[findById] order items not found !");
+                LOGGER.warning(() -> "[findAll] order items not found !");
                 return null;
             }
-            LOGGER.fine(() -> "[findById] found total " + orderItems.size() + " order items !");
+            LOGGER.info(() -> "[findAll] found total " + orderItems.size() + " order items !");
             return orderItems;
         } catch (SQLException exception) {
             LOGGER.log(
@@ -101,15 +101,15 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
                 }
             }
             if (orderItems.isEmpty()){
-                LOGGER.fine(() -> "[findById] order items not found for Order with ID " + orderId + "!");
+                LOGGER.warning(() -> "[findByOrderId] order items not found for Order with ID " + orderId + "!");
                 return null;
             }
-            LOGGER.fine(() -> "[findById] found total " + orderItems.size() + " order items for Order with ID " + orderId + "!");
+            LOGGER.info(() -> "[findByOrderId] found total " + orderItems.size() + " order items for Order with ID " + orderId + "!");
             return orderItems;
         } catch (SQLException exception) {
             LOGGER.log(
                     Level.SEVERE,
-                    "[findAll] Database error while searching order items for Order with ID : " + orderId + ".",
+                    "[findByOrderId] Database error while searching order items for Order with ID : " + orderId + ".",
                     exception);
             return null;
         }
@@ -118,7 +118,9 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
     @Override
     public ErrorCodes save(OrderItemsModel orderItem) {
         if (orderItem == null) {
-            return ErrorCodes.BAD_TYPE;
+            throw new IllegalArgumentException(
+                "orderItem cannot be null"
+            );
         }
 
         String sql = "INSERT INTO order_items (order_id, menu_item_id, quantity, "
@@ -129,31 +131,35 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
             setOrderItemParameters(statement, orderItem, false);
 
             if (statement.executeUpdate() == 0) {
+                LOGGER.warning(() -> "[save] order items " + orderItem + " not able to saved !");
                 return ErrorCodes.FAILED_TO_WRITE;
             }
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (!generatedKeys.next()) {
+                    LOGGER.warning(() -> "[save] order items \"" + orderItem + "\" not able to saved !");
                     return ErrorCodes.FAILED_TO_WRITE;
                 }
                 orderItem.setId(generatedKeys.getInt(1));
             }
-
+            LOGGER.info(() -> "[save] order items \"" + orderItem + "\" saved !");
             return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
             LOGGER.log(
                     Level.SEVERE,
-                    "[findAll] Database error while saving order item \"" + orderItem + "\".",
+                    "[save] Database error while saving order item \"" + orderItem + "\".",
                     exception);
 
-             return ErrorCodes.IO_ERROR;
+            return ErrorCodes.IO_ERROR;
         }
     }
 
     @Override
     public ErrorCodes update(OrderItemsModel orderItem) {
         if (orderItem == null) {
-            return ErrorCodes.BAD_TYPE;
+            throw new IllegalArgumentException(
+                "orderItem cannot be null"
+            );
         }
 
         String sql = "UPDATE order_items SET order_id = ?, menu_item_id = ?, quantity = ?, "
@@ -161,15 +167,20 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             setOrderItemParameters(statement, orderItem, true);
-            System.out.println(orderItem.toString());
-            return statement.executeUpdate() == 0
-                    ? ErrorCodes.NOT_FOUND
-                    : ErrorCodes.SUCCESS;
+            
+            if ( statement.executeUpdate() == 0 ){
+                LOGGER.warning(() -> "[update] order item \"" + orderItem + "\" not found !");
+                return ErrorCodes.NOT_FOUND;
+            }
+            LOGGER.info(() -> "[update] order item \"" + orderItem + "\" updated !");
+            return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            RuntimeException ex = databaseException("update order item", exception);
-            System.err.println("Failed: " + ex.getMessage() );
-            //System.err.println(ex.getStackTrace().toString());
-            return ErrorCodes.FAILED_TO_WRITE;
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[update] Database error while updating order item \"" + orderItem + "\".",
+                    exception);
+
+             return ErrorCodes.IO_ERROR;
             
         }
     }
@@ -180,11 +191,19 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
-            return statement.executeUpdate() == 0
-                    ? ErrorCodes.NOT_FOUND
-                    : ErrorCodes.SUCCESS;
+            if ( statement.executeUpdate() == 0 ){
+                LOGGER.warning(() -> "[deleteById] order item with ID : " + id + " not found !");
+                return ErrorCodes.NOT_FOUND;
+            }
+            LOGGER.info(() -> "[deleteById] order item with ID : " + id + " deleted !");
+            return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("delete order item by ID", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[deleteById] Database error while deleting order item with id" + id + ".",
+                    exception);
+
+             return ErrorCodes.IO_ERROR;
         }
     }
 
@@ -192,7 +211,9 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
     public List<MenuItemsModel> getMenuItemsByOrderItems(List<OrderItemsModel> orderItems) {
         List<MenuItemsModel> menuItems = new ArrayList<>();
         if (orderItems == null || orderItems.isEmpty()) {
-            return menuItems;
+            throw new IllegalArgumentException(
+                "orderItems cannot be null"
+            );
         }
 
         String sql = "SELECT id, restaurant_id, name, price, quantity, is_available "
@@ -201,24 +222,35 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             for (OrderItemsModel orderItem : orderItems) {
                 if (orderItem == null) {
-                    throw new IllegalArgumentException(
-                            "Order-item list cannot contain null values.");
+                    menuItems.add(null);
+                    continue;
                 }
 
                 statement.setInt(1, orderItem.getMenu_item_id());
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (!resultSet.next()) {
-                        throw new IllegalStateException(
-                                "Menu item " + orderItem.getMenu_item_id()
-                                        + " referenced by order item "
-                                        + orderItem.getId() + " was not found.");
+                        menuItems.add(null);
+                        continue;
                     }
                     menuItems.add(mapMenuItem(resultSet));
                 }
             }
+
+            if (menuItems.isEmpty()){
+                LOGGER.warning(() -> "[getMenuItemsByOrderItems] "+
+                "no menu items matching !");
+                return null;
+            }
+            LOGGER.info(() -> "[getMenuItemsByOrderItems] "+
+            "total : " + menuItems.size() + " menu items matching !");
             return menuItems;
         } catch (SQLException exception) {
-            throw databaseException("find menu items by order items", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[update] Database error while searching for matching order items .",
+                    exception);
+
+             return null;
         }
     }
 

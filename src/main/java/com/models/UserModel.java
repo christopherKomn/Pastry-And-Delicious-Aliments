@@ -112,4 +112,18 @@ public class UserModel {
     private static Timestamp copyTimestamp(Timestamp value) {
         return value == null ? null : (Timestamp) value.clone();
     }
+
+    @Override
+    public String toString() {
+        return "UserModel{"
+                + "user_id=" + user_id
+                + ", user_email=" + user_email
+                + ", user_phone=" + user_phone
+                + ", user_username=" + user_username
+                + ", user_password=[REDACTED]"
+                + ", user_type=" + user_type
+                + ", user_profile_image_url=" + user_profile_image_url
+                + ", user_created_at=" + user_created_at
+                + '}';
+    }
 }

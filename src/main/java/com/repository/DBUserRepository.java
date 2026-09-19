@@ -48,11 +48,11 @@ public class DBUserRepository implements IUserRepository {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
-                    LOGGER.fine(() -> "[findUserById] User not found for ID: " + id);
+                    LOGGER.warning(() -> "[findUserById] User not found for ID: " + id);
                     return null;
                 }
 
-                LOGGER.fine(() -> "[findUserById] User found for ID: " + id);
+                LOGGER.info(() -> "[findUserById] User found for ID: " + id);
                 return mapUser(resultSet);
             }
         } catch (SQLException exception) {
@@ -75,10 +75,10 @@ public class DBUserRepository implements IUserRepository {
                 users.add(mapUser(resultSet));
             }
             if (users.size() == 0){
-                LOGGER.fine(() -> "[findAllUser] could not find any user!");
+                LOGGER.warning(() -> "[findAllUser] could not find any user!");
                 return null;
             }
-            LOGGER.fine(() -> "[findAllUser] found " + users.size() + " users!");
+            LOGGER.info(() -> "[findAllUser] found " + users.size() + " users!");
             return users;
         } catch (SQLException exception) {
             LOGGER.log(
@@ -104,18 +104,18 @@ public class DBUserRepository implements IUserRepository {
         connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             setUserParameters(statement, user, false);
             if (statement.executeUpdate() == 0) {
-                LOGGER.fine(() -> "[saveUser] could not saved user \"" + user.toString() + " \"");
+                LOGGER.warning(() -> "[saveUser] could not saved user \"" + user.toString() + " \"");
                 return ErrorCodes.FAILED_TO_WRITE;
             }
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (!generatedKeys.next()) {
-                    LOGGER.fine(() -> "[saveUser] could not saved user \"" + user.toString() + " \"");
+                    LOGGER.warning(() -> "[saveUser] could not saved user \"" + user.toString() + " \"");
                     return ErrorCodes.FAILED_TO_WRITE;
                 }
                 
                 user.setUserId(generatedKeys.getInt(1));
-                    LOGGER.fine(() -> "[saveUser] saved user \"" + user.toString() + " \"");
+                    LOGGER.info(() -> "[saveUser] saved user \"" + user.toString() + " \"");
                 return ErrorCodes.SUCCESS;
                 
             }
@@ -143,10 +143,10 @@ public class DBUserRepository implements IUserRepository {
             setUserParameters(statement, user, true);
             int updatedRows = statement.executeUpdate();
             if (updatedRows == 0) {
-                LOGGER.fine(() -> "[updateUser] could not find user \"" + user.toString() + " \"");
+                LOGGER.warning(() -> "[updateUser] could not find user \"" + user.toString() + " \"");
                 return ErrorCodes.NOT_FOUND;
             }
-            LOGGER.fine(() -> "[updateUser] user \"" + user.toString() + " \" updated !");
+            LOGGER.info(() -> "[updateUser] user \"" + user.toString() + " \" updated !");
             return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
             LOGGER.log(
@@ -165,10 +165,10 @@ public class DBUserRepository implements IUserRepository {
             statement.setInt(1, id);
             int updatedRows = statement.executeUpdate();
             if (updatedRows == 0){
-                LOGGER.fine(() -> "[deleteUserById] could not find user with ID" + id);
+                LOGGER.warning(() -> "[deleteUserById] could not find user with ID" + id);
                 return ErrorCodes.NOT_FOUND;
             }
-            LOGGER.fine(() -> "[deleteUserById] user with id " + id + " deleted!");
+            LOGGER.info(() -> "[deleteUserById] user with id " + id + " deleted!");
             return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
             LOGGER.log(
@@ -220,12 +220,12 @@ public class DBUserRepository implements IUserRepository {
             try (ResultSet resultSet = statement.executeQuery()) {
                 UserModel user = resultSet.next() ? mapUser(resultSet) : null;
                 if (user == null){
-                    LOGGER.fine(() -> 
+                    LOGGER.warning(() -> 
                     "[findByUsername] could not find user with username \"" + username 
                      + " \"");
                     return null;
                 }
-                LOGGER.fine(() -> 
+                LOGGER.info(() -> 
                 "[findByUsername] found user with username \"" + username 
                  + " \"");
                 return user;
@@ -256,12 +256,12 @@ public class DBUserRepository implements IUserRepository {
             try (ResultSet resultSet = statement.executeQuery()) {
                 UserModel user = resultSet.next() ? mapUser(resultSet) : null;
                 if (user == null){
-                    LOGGER.fine(() -> 
+                    LOGGER.warning(() -> 
                     "[findByUsernameAndPassword] could not find user with username \"" + username 
                      + " \"");
                     return null;
                 }
-                LOGGER.fine(() -> 
+                LOGGER.info(() -> 
                 "[findByUsernameAndPassword] found user with username \"" + username 
                  + " \"");
                 return user;

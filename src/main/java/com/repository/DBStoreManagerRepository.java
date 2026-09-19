@@ -48,10 +48,10 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
                 StoreManagerModel store = 
                 resultSet.next() ? mapStoreManager(resultSet) : null;
                 if (store == null){
-                    LOGGER.fine(() -> "[findById] No restaurant was found with ID " + id + ".");
+                    LOGGER.warning(() -> "[findById] No restaurant was found with ID " + id + ".");
                     return null;
                 }
-                LOGGER.fine(() -> "[findById] Found restaurant: " + store);
+                LOGGER.info(() -> "[findById] Found restaurant: " + store);
                 return store;
             }
         } catch (SQLException exception) {
@@ -75,11 +75,11 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
             }
 
             if (storeManagers.isEmpty() ){
-                LOGGER.fine("[findAll] No restaurants were found.");
+                LOGGER.warning("[findAll] No restaurants were found.");
                 return null;
             }
 
-            LOGGER.fine(() -> "[findAll] Retrieved "
+            LOGGER.info(() -> "[findAll] Retrieved "
                     + storeManagers.size() + " restaurant(s).");
             return storeManagers;
         } catch (SQLException exception) {
@@ -113,7 +113,7 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     storeManager.setRestaurant_id(generatedKeys.getInt(1));
-                    LOGGER.fine(() -> "[save] Restaurant saved successfully: " + storeManager);
+                    LOGGER.info(() -> "[save] Restaurant saved successfully: " + storeManager);
                     return ErrorCodes.SUCCESS;
                 }else {
                     LOGGER.warning("[save] Restaurant was inserted, but no generated ID was returned: "
@@ -146,11 +146,11 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             setStoreManagerParameters(statement, storeManager, true);
             if (statement.executeUpdate() == 0) {
-                LOGGER.fine(() -> "[update] No restaurant was found with ID "
+                LOGGER.warning(() -> "[update] No restaurant was found with ID "
                         + storeManager.getRestaurant_id() + ".");
                 return ErrorCodes.NOT_FOUND;
             }
-            LOGGER.fine(() -> "[update] Restaurant updated successfully: " + storeManager);
+            LOGGER.info(() -> "[update] Restaurant updated successfully: " + storeManager);
             return ErrorCodes.SUCCESS;
             
         } catch (SQLException exception) {
@@ -170,10 +170,10 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
             statement.setInt(1, id);
             statement.executeUpdate();
             if (statement.getUpdateCount() == 0) {
-                LOGGER.fine(() -> "[deleteById] No restaurant was found with ID " + id + ".");
+                LOGGER.warning(() -> "[deleteById] No restaurant was found with ID " + id + ".");
                 return ErrorCodes.NOT_FOUND;
             }
-            LOGGER.fine(() -> "[deleteById] Deleted restaurant with ID " + id + ".");
+            LOGGER.info(() -> "[deleteById] Deleted restaurant with ID " + id + ".");
             return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
             LOGGER.log(
@@ -193,11 +193,11 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
             try (ResultSet resultSet = statement.executeQuery()) {
                 StoreManagerModel store = resultSet.next() ? mapStoreManager(resultSet) : null;
                 if (store == null){
-                    LOGGER.fine(() -> "[findByOwnerId] No restaurant was found for owner ID "
+                    LOGGER.warning(() -> "[findByOwnerId] No restaurant was found for owner ID "
                             + ownerId + ".");
                     return null;
                 }
-                LOGGER.fine(() -> "[findByOwnerId] Found restaurant for owner ID "
+                LOGGER.info(() -> "[findByOwnerId] Found restaurant for owner ID "
                         + ownerId + ": " + store);
                 return store;
             }
@@ -219,11 +219,11 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
             statement.setInt(1, ownerId);
             int updateCount = statement.executeUpdate();
             if (updateCount == 0){
-                LOGGER.fine(() -> "[deleteByOwnerId] No restaurants were found for owner ID "
+                LOGGER.warning(() -> "[deleteByOwnerId] No restaurants were found for owner ID "
                         + ownerId + ".");
                 return ErrorCodes.NOT_FOUND;
             }
-            LOGGER.fine(() -> "[deleteByOwnerId] Deleted " + updateCount
+            LOGGER.info(() -> "[deleteByOwnerId] Deleted " + updateCount
                     + " restaurant(s) for owner ID " + ownerId + ".");
             return  ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
@@ -256,12 +256,12 @@ public class DBStoreManagerRepository implements IStoreManagerRepository {
             try (ResultSet resultSet = statement.executeQuery()) {
                 StoreManagerModel store = resultSet.next() ? mapStoreManager(resultSet) : null;
                 if (store == null){
-                    LOGGER.fine(() -> "[findByNCAP] No restaurant matched name='" + name
+                    LOGGER.warning(() -> "[findByNCAP] No restaurant matched name='" + name
                             + "', city='" + city + "', address='" + addressLine1
                             + "', postalCode='" + postalCode + "'.");
                     return null;
                 }
-                LOGGER.fine(() -> "[findByNCAP] Found restaurant: " + store);
+                LOGGER.info(() -> "[findByNCAP] Found restaurant: " + store);
                 return store;
             }
         } catch (SQLException exception) {

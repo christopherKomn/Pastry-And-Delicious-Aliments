@@ -161,4 +161,23 @@ public class MenuItemsModel {
         this.item_updated_at = item_updated_at;
     }
 
+
+    @Override
+    public String toString() {
+        return "MenuItemsModel{"
+                + "item_id=" + item_id
+                + ", restaurant_id=" + restaurant_id
+                + ", item_name=" + item_name
+                + ", item_quantity=" + item_quantity
+                + ", item_description=" + item_description
+                + ", item_price=" + item_price
+                + ", item_discounted_price=" + item_discounted_price
+                + ", item_preparation_time=" + item_preparation_time
+                + ", is_available=" + is_available
+                + ", item_image_url=" + item_image_url
+                + ", item_display_order=" + item_display_order
+                + ", item_created_at=" + item_created_at
+                + ", item_updated_at=" + item_updated_at
+                + '}';
+    }
 }

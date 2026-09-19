@@ -7,16 +7,27 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.ErrorCodes;
 import com.models.CustomerModel;
 public class DBCustomerRepository implements ICustomerRepository {
+    private static final Logger LOGGER =
+            Logger.getLogger(DBCustomerRepository.class.getName());
+
     private static final String SELECT_COLUMNS = "id, user_id, fullname, city, state, postal_code, "
             + "address_line1, address_line2";
 
     private final Connection connection;
 
     public DBCustomerRepository(Connection connection) {
+        if (connection == null) {
+            LOGGER.severe(
+                "[constructor] Cannot create DBCustomerRepository because the database connection is null."
+            );
+            throw new IllegalArgumentException("Connection cannot be null.");
+        }
         this.connection = connection;
     }
 
@@ -28,13 +39,23 @@ public class DBCustomerRepository implements ICustomerRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? mapCustomer(resultSet) : null;
+                CustomerModel model = resultSet.next() ? mapCustomer(resultSet) : null;
+
+                if (model == null){
+                    LOGGER.warning(() -> "[findById] customer with id  : " + id + " is not found !");
+                    return null;
+                }
+                LOGGER.info(() -> "[findById] customer " + model + " found !");
+                return model;
             }
         } catch (SQLException exception) {
-            throw databaseException("find customer by ID", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findById] Database error while searching customer with ID " + id + ".",
+                    exception);
+            return null;
         }
 
-       // return null;
     }
 
     @Override
@@ -47,16 +68,30 @@ public class DBCustomerRepository implements ICustomerRepository {
             while (resultSet.next()) {
                 customers.add(mapCustomer(resultSet));
             }
+            if (customers.isEmpty()){
+                LOGGER.warning(() -> "[findAll] customers not found !");
+                return null;
+            }
+            LOGGER.info(() -> "[findAll] found total " + customers.size() + " customers !");
             return customers;
         } catch (SQLException exception) {
-            throw databaseException("find all customers", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findAll] Database error while searching customers .",
+                    exception);
+            return null;
         }
     
-       // return null;
     }
 
     @Override
     public ErrorCodes save(CustomerModel customer) {
+        if (customer == null){
+            throw new IllegalArgumentException(
+                "customer cannot be null"
+            );
+        }
+
         String sql = "INSERT INTO customer (user_id, fullname, city, state, postal_code, address_line1, "
                 + "address_line2) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
@@ -64,30 +99,52 @@ public class DBCustomerRepository implements ICustomerRepository {
             setCustomerParameters(statement, customer, false);
             statement.executeUpdate();
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    customer.setId(generatedKeys.getInt(1));
+                if (!generatedKeys.next()) {
+                    LOGGER.warning(() -> "[save] customer \"" + customer + "\" not able to saved !");
+                    return ErrorCodes.FAILED_TO_WRITE;
                 }
+                customer.setId(generatedKeys.getInt(1));
             }
+            LOGGER.info(() -> "[save] customer \"" + customer + "\" saved !");
+            return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("save customer", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[save] Database error while saving customer \"" + customer + "\".",
+                    exception);
+
+            return ErrorCodes.IO_ERROR;
         }
-        return ErrorCodes.SUCCESS;
     }
 
     @Override
     public ErrorCodes update(CustomerModel customer) {
+        if (customer == null){
+            throw new IllegalArgumentException(
+                "customer cannot be null"
+            );
+        }
+
         String sql = "UPDATE customer SET user_id = ?, fullname = ?, city = ?, state = ?, postal_code = ?, "
                 + "address_line1 = ?, address_line2 = ? WHERE id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             setCustomerParameters(statement, customer, true);
-            if (statement.executeUpdate() == 0) {
+            if ( statement.executeUpdate() == 0 ){
+                LOGGER.warning(() -> "[update] customer \"" + customer + "\" not found !");
                 return ErrorCodes.NOT_FOUND;
             }
+            LOGGER.info(() -> "[update] customer \"" + customer + "\" updated !");
+            return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("update customer", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[save] Database error while saving customer \"" + customer + "\".",
+                    exception);
+
+            return ErrorCodes.IO_ERROR;
         }
-        return ErrorCodes.SUCCESS;
+        
     }
         
 
@@ -97,11 +154,20 @@ public class DBCustomerRepository implements ICustomerRepository {
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
-            statement.executeUpdate();
+            if ( statement.executeUpdate() == 0 ){
+                LOGGER.warning(() -> "[deleteById] customer with ID : " + id + " not found !");
+                return ErrorCodes.NOT_FOUND;
+            }
+            LOGGER.info(() -> "[deleteById] customer with ID : " + id + " deleted !");
+            return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
-            throw databaseException("delete customer", exception);
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[deleteById] Database error while deleting customer with id" + id + ".",
+                    exception);
+
+             return ErrorCodes.IO_ERROR;
         }
-        return ErrorCodes.SUCCESS;
     }
     
     private CustomerModel mapCustomer(ResultSet resultSet) throws SQLException {

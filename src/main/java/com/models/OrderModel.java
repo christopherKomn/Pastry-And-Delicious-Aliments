@@ -199,4 +199,26 @@ public class OrderModel {
     private static Timestamp copyTimestamp(Timestamp value) {
         return value == null ? null : (Timestamp) value.clone();
     }
+
+    @Override
+    public String toString() {
+        return "OrderModel{"
+                + "id=" + id
+                + ", customer_id=" + customer_id
+                + ", restaurant_id=" + restaurant_id
+                + ", status=" + status
+                + ", subtotal=" + subtotal
+                + ", discount_amount=" + discount_amount
+                + ", total_amount=" + total_amount
+                + ", payment_method=" + payment_method
+                + ", special_instructions=" + special_instructions
+                + ", actual_delivery_time=" + actual_delivery_time
+                + ", created_at=" + created_at
+                + ", updated_at=" + updated_at
+                + ", confirmed_at=" + confirmed_at
+                + ", prepared_at=" + prepared_at
+                + ", picked_up_at=" + picked_up_at
+                + ", delivered_at=" + delivered_at
+                + '}';
+    }
 }

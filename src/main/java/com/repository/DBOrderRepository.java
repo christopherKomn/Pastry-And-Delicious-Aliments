@@ -63,16 +63,16 @@ public class DBOrderRepository implements IOrderRepository {
             setOrderParameters(statement, order, false);
 
             if (statement.executeUpdate() == 0) {
-                LOGGER.fine(() -> "[save] io write error , can't write order : " + order);
+                LOGGER.warning(() -> "[save] io write error , can't write order : " + order);
                 return ErrorCodes.FAILED_TO_WRITE;
             }
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (!generatedKeys.next()) {
-                    LOGGER.fine(() -> "[save] io write error , can't write order : " + order);
+                    LOGGER.warning(() -> "[save] io write error , can't write order : " + order);
                     return ErrorCodes.FAILED_TO_WRITE;
                 }
-                LOGGER.fine(() -> "[save] order : " + order + " is saved !");
+                LOGGER.info(() -> "[save] order : " + order + " is saved !");
                 order.setId(generatedKeys.getInt(1));
                 return ErrorCodes.SUCCESS;
             }
@@ -103,10 +103,10 @@ public class DBOrderRepository implements IOrderRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             setOrderParameters(statement, order, true);
             if (statement.executeUpdate() == 0){
-                LOGGER.fine(() -> "[update] can't find order : " + order);
+                LOGGER.warning(() -> "[update] can't find order : " + order);
                 return ErrorCodes.NOT_FOUND;
             }
-            LOGGER.fine(() -> "[update]  order : " + order + " is updated! ");
+            LOGGER.info(() -> "[update]  order : " + order + " is updated! ");
             return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
             LOGGER.log(
@@ -131,10 +131,10 @@ public class DBOrderRepository implements IOrderRepository {
             try (ResultSet resultSet = statement.executeQuery()) {
                 OrderModel order = resultSet.next() ? mapOrder(resultSet) : null;
                 if (order == null){
-                    LOGGER.fine(() -> "[findById]  cannot find by id : " + id + " order ");
+                    LOGGER.warning(() -> "[findById]  cannot find by id : " + id + " order ");
                     return null;
                 }
-                LOGGER.fine(() -> "[findById] order : " + order + " retreived !");
+                LOGGER.info(() -> "[findById] order : " + order + " retreived !");
                 return order;
             }
         } catch (SQLException exception) {
@@ -172,10 +172,10 @@ public class DBOrderRepository implements IOrderRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             if (statement.executeUpdate() == 0){
-                LOGGER.fine(() -> "[deleteById]  cannot find by id : " + id + " order ");
+                LOGGER.warning(() -> "[deleteById]  cannot find by id : " + id + " order ");
                 return ErrorCodes.NOT_FOUND;
             }
-            LOGGER.fine(() -> "[findById] order with id " + id + " deleted !");
+            LOGGER.info(() -> "[findById] order with id " + id + " deleted !");
             return ErrorCodes.SUCCESS;
         } catch (SQLException exception) {
             LOGGER.log(
@@ -206,12 +206,12 @@ public class DBOrderRepository implements IOrderRepository {
             try (ResultSet resultSet = statement.executeQuery()) {
                 OrderModel order =  resultSet.next() ? mapOrder(resultSet) : null;
                 if (order == null){
-                    LOGGER.fine(() -> "[findByCustomerRestaurant] "+
+                    LOGGER.warning(() -> "[findByCustomerRestaurant] "+
                     "no order found related with customer \""+customer + 
                     "\" and store manager \"" + restaurant + ".");
                     return null;
                 }
-                LOGGER.fine(() -> "[findByCustomerRestaurant] "+
+                LOGGER.info(() -> "[findByCustomerRestaurant] "+
                 "order \"" + order + "\" found related with customer \""+customer + 
                 "\" and store manager \"" + restaurant + ".");
                 return order;
@@ -264,11 +264,11 @@ public class DBOrderRepository implements IOrderRepository {
                 }
             }
             if (orderItems.isEmpty()){
-                LOGGER.fine(() -> "[findAllOrderItemsByOrderId]  cannot find order items or order with related " +
+                LOGGER.warning(() -> "[findAllOrderItemsByOrderId]  cannot find order items or order with related " +
                 " order Id : " + orderId + " . ");
                 return null;
             }
-            LOGGER.fine(() -> "[findAllOrderItemsByOrderId]  found total order items " + 
+            LOGGER.info(() -> "[findAllOrderItemsByOrderId]  found total order items " + 
             orderItems.size() +" with related " +
             " order Id : " + orderId + " . ");
             return orderItems;
@@ -293,10 +293,10 @@ public class DBOrderRepository implements IOrderRepository {
                 orders.add(mapOrder(resultSet));
             }
             if (orders.isEmpty()){
-                LOGGER.fine(() -> "[findAll]  cannot find orders . ");
+                LOGGER.warning(() -> "[findAll]  cannot find orders . ");
                 return null;
             }
-            LOGGER.fine(() -> "[findAll]  found total " + orders.size() + " orders . ");
+            LOGGER.info(() -> "[findAll]  found total " + orders.size() + " orders . ");
             return orders;
         } catch (SQLException exception) {
             LOGGER.log(
@@ -344,10 +344,10 @@ public class DBOrderRepository implements IOrderRepository {
                 }
             }
             if (orders.isEmpty()){
-                LOGGER.fine(() -> "[findByRelatedId]  cannot find orders . ");
+                LOGGER.warning(() -> "[findByRelatedId]  cannot find orders . ");
                 return null;
             }
-            LOGGER.fine(() -> "[findByRelatedId]  found total " + orders.size() + " orders . ");
+            LOGGER.info(() -> "[findByRelatedId]  found total " + orders.size() + " orders . ");
             return orders;
         } catch (SQLException exception) {
             LOGGER.log(
@@ -373,11 +373,11 @@ public class DBOrderRepository implements IOrderRepository {
             try (ResultSet resultSet = statement.executeQuery()) {
                 Integer res = resultSet.next() ? resultSet.getInt(columnName) : null;
                 if (res == null){
-                    LOGGER.fine(() -> "[findRelatedId]  could not find  a \"" + columnName + " from order id " + 
+                    LOGGER.warning(() -> "[findRelatedId]  could not find  a \"" + columnName + " from order id " + 
                 orderId);
                     return null;
                 }
-                LOGGER.fine(() -> "[findRelatedId]  found  a \"" + columnName + " from order id " + 
+                LOGGER.info(() -> "[findRelatedId]  found  a \"" + columnName + " from order id " + 
                 orderId);
                 return res;
             }

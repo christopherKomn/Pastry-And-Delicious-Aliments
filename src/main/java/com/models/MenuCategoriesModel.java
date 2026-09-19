@@ -67,4 +67,15 @@ public class MenuCategoriesModel {
     public void setCategoryActive(Boolean Active) {
         this.is_active = Active;
     }
+
+    @Override
+    public String toString() {
+        return "MenuCategoriesModel{"
+                + "category_id=" + category_id
+                + ", restaurant_id=" + restaurant_id
+                + ", category_name=" + category_name
+                + ", category_description=" + category_description
+                + ", is_active=" + is_active
+                + '}';
+    }
 }
