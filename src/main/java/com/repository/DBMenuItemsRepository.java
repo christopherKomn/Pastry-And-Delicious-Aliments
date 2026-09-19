@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import com.models.MenuItemsModel;
+import com.ErrorCodes;
 
 public class DBMenuItemsRepository implements IMenuItemsRepository {
     private final Connection connection;
@@ -17,44 +18,44 @@ public class DBMenuItemsRepository implements IMenuItemsRepository {
     }
 
     @Override
-    public boolean deleteUnusedItem(int itemId, int restaurantId) {
+    public ErrorCodes deleteItem(int itemId, int restaurantId) {
         // Guard against cascading deletion of existing order lines.
         String sql = "DELETE FROM menu_items WHERE id = ? AND restaurant_id = ? "
                 + "AND NOT EXISTS (SELECT 1 FROM order_items WHERE menu_item_id = menu_items.id)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, itemId);
             statement.setInt(2, restaurantId);
-            return statement.executeUpdate() == 1;
+            return statement.executeUpdate() == 1 ? ErrorCodes.SUCCESS : ErrorCodes.FAILED_TO_WRITE;
         } catch (SQLException exception) {
-            throw new RuntimeException("Could not remove the item.", exception);
+            return ErrorCodes.IO_ERROR;
         }
     }
 
     @Override
-    public boolean updatePrice(int itemId, int restaurantId, java.math.BigDecimal price) {
+    public ErrorCodes updatePrice(int itemId, int restaurantId, java.math.BigDecimal price) {
         return updateField("price", price, itemId, restaurantId);
     }
 
     @Override
-    public boolean updateQuantity(int itemId, int restaurantId, int quantity) {
+    public ErrorCodes updateQuantity(int itemId, int restaurantId, int quantity) {
         return updateField("quantity", quantity, itemId, restaurantId);
     }
 
     @Override
-    public boolean updateAvailability(int itemId, int restaurantId, boolean available) {
+    public ErrorCodes updateAvailability(int itemId, int restaurantId, boolean available) {
         return updateField("is_available", available, itemId, restaurantId);
     }
 
     // Column names come only from the three methods above, never from user input.
-    private boolean updateField(String column, Object value, int itemId, int restaurantId) {
+    private ErrorCodes updateField(String column, Object value, int itemId, int restaurantId) {
         String sql = "UPDATE menu_items SET " + column + " = ? WHERE id = ? AND restaurant_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setObject(1, value);
             statement.setInt(2, itemId);
             statement.setInt(3, restaurantId);
-            return statement.executeUpdate() == 1;
+            return statement.executeUpdate() == 1 ? ErrorCodes.SUCCESS : ErrorCodes.NOT_FOUND;
         } catch (SQLException exception) {
-            throw new RuntimeException("Could not update the item.", exception);
+            return ErrorCodes.IO_ERROR;
         }
     }
 
@@ -85,7 +86,8 @@ public class DBMenuItemsRepository implements IMenuItemsRepository {
     }
 
     @Override
-    public void save(MenuItemsModel item) {
+    public ErrorCodes save(MenuItemsModel item) {
+        if (item == null) return ErrorCodes.NULL_VALUE;
         // Optional fields, including category_id, keep their database defaults.
         String sql = "INSERT INTO menu_items (restaurant_id, name, price, quantity, is_available) "
                 + "VALUES (?, ?, ?, ?, ?)";
@@ -96,7 +98,7 @@ public class DBMenuItemsRepository implements IMenuItemsRepository {
             statement.setInt(4, item.getItem_quantity());
             statement.setBoolean(5, item.getIs_available());
             if (statement.executeUpdate() != 1) {
-                throw new SQLException("The item was not saved.");
+                return ErrorCodes.FAILED_TO_WRITE;
             }
             try (ResultSet keys = statement.getGeneratedKeys()) {
                 if (keys.next()) {
@@ -104,7 +106,8 @@ public class DBMenuItemsRepository implements IMenuItemsRepository {
                 }
             }
         } catch (SQLException exception) {
-            throw new RuntimeException("Could not save the item.", exception);
+            return ErrorCodes.IO_ERROR;
         }
+        return ErrorCodes.SUCCESS;
     }
 }

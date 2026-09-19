@@ -60,7 +60,7 @@ public class ShowItemsService {
      * @param quantityInput The quantity text
      * @param available The item availability
      * @return SUCCESS on creation, NULL_VALUE for null inputs, BAD_TYPE for invalid
-     * data, NOT_FOUND for a missing store, or IO_ERROR for a repository failure
+     * data, NOT_FOUND for a missing store, FAILED_TO_WRITE if no item was inserted, or IO_ERROR for a repository failure
      */
     public ErrorCodes addItem(String nameInput, String priceInput, String quantityInput, boolean available) {
         if (nameInput == null || priceInput == null || quantityInput == null)
@@ -89,8 +89,7 @@ public class ShowItemsService {
             item.setItem_price(price);
             item.setItem_quantity(quantity);
             item.setIs_available(available);
-            itemsRepository.save(item);
-            return ErrorCodes.SUCCESS;
+            return itemsRepository.save(item);
         } catch (RuntimeException exception) {
             return ErrorCodes.IO_ERROR;
         }
@@ -153,8 +152,8 @@ public class ShowItemsService {
         try {
             ErrorCodes result = checkItemStore(item);
             if (result != ErrorCodes.SUCCESS) return result;
-            if (!itemsRepository.updatePrice(item.getItem_id(), item.getRestaurant_id(), value))
-                return ErrorCodes.NOT_FOUND;
+            result = itemsRepository.updatePrice(item.getItem_id(), item.getRestaurant_id(), value);
+            if (result != ErrorCodes.SUCCESS) return result;
             item.setItem_price(value);
             return ErrorCodes.SUCCESS;
         } catch (RuntimeException exception) {
@@ -177,8 +176,8 @@ public class ShowItemsService {
         try {
             ErrorCodes result = checkItemStore(item);
             if (result != ErrorCodes.SUCCESS) return result;
-            if (!itemsRepository.updateQuantity(item.getItem_id(), item.getRestaurant_id(), value))
-                return ErrorCodes.NOT_FOUND;
+            result = itemsRepository.updateQuantity(item.getItem_id(), item.getRestaurant_id(), value);
+            if (result != ErrorCodes.SUCCESS) return result;
             item.setItem_quantity(value);
             return ErrorCodes.SUCCESS;
         } catch (RuntimeException exception) {
@@ -200,8 +199,8 @@ public class ShowItemsService {
         try {
             ErrorCodes result = checkItemStore(item);
             if (result != ErrorCodes.SUCCESS) return result;
-            if (!itemsRepository.updateAvailability(item.getItem_id(), item.getRestaurant_id(), value))
-                return ErrorCodes.NOT_FOUND;
+            result = itemsRepository.updateAvailability(item.getItem_id(), item.getRestaurant_id(), value);
+            if (result != ErrorCodes.SUCCESS) return result;
             item.setIs_available(value);
             return ErrorCodes.SUCCESS;
         } catch (RuntimeException exception) {
@@ -221,10 +220,7 @@ public class ShowItemsService {
         try {
             ErrorCodes result = checkItemStore(item);
             if (result != ErrorCodes.SUCCESS) return result;
-            // The boolean repository result cannot distinguish blocked and missing items.
-            if (!itemsRepository.deleteUnusedItem(item.getItem_id(), item.getRestaurant_id()))
-                return ErrorCodes.FAILED_TO_WRITE;
-            return ErrorCodes.SUCCESS;
+            return itemsRepository.deleteItem(item.getItem_id(), item.getRestaurant_id());
         } catch (RuntimeException exception) {
             return ErrorCodes.IO_ERROR;
         }
