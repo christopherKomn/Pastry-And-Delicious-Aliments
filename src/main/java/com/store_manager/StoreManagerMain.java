@@ -79,7 +79,7 @@ public class StoreManagerMain {
         );
         
         ShowItemsService showItemsService =
-            new ShowItemsService(srepo , irepo , ownerStore);
+            new ShowItemsService(irepo , ownerStore);
 
         OrderService orderService = new OrderService(orepo);
         

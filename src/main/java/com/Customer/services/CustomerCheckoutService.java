@@ -2,12 +2,9 @@ package com.customer.services;
 
 
 import java.math.BigDecimal;
-import java.sql.*;
-import java.util.Calendar;
 import java.util.List;
 
 import com.models.CartItem;
-import com.models.CustomerModel;
 
 
 public class CustomerCheckoutService {
@@ -25,7 +22,7 @@ public class CustomerCheckoutService {
         return cartItem.getProduct().getItem_price()
                 .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
     }
-
+    /*
     public void SetOrderToDB(List<CartItem> cartItems, Connection dbConnection, CustomerModel customer){
 
         Calendar calendarInstance = Calendar.getInstance();
@@ -55,5 +52,5 @@ public class CustomerCheckoutService {
         {
             System.out.println(e);
         }
-    }
+    }*/
 }

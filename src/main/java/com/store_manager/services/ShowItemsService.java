@@ -8,45 +8,36 @@ import com.ErrorCodes;
 import com.models.MenuItemsModel;
 import com.models.StoreManagerModel;
 import com.repository.IMenuItemsRepository;
-import com.repository.IStoreManagerRepository;
 
 /**
  * @brief Service class for managing the signed-in owner's menu items
  * The model is changed only after a successful repository operation.
  */
 public class ShowItemsService {
-    private final IStoreManagerRepository storeRepository;
     private final IMenuItemsRepository itemsRepository;
     private final StoreManagerModel ownerStore;
-    private final int ownerId;
 
     /**
      * @brief Constructor for the show items service
-     * @param storeRepository The repository for retrieving the owner's store
      * @param itemsRepository The repository for managing menu items
-     * @param ownerId The ID of the signed-in owner
+     * @param ownerStore The signed-in owner's store, loaded when the service is created
      */
     public ShowItemsService(
-            IStoreManagerRepository storeRepository,
             IMenuItemsRepository itemsRepository , 
             StoreManagerModel ownerStore ) {
-        this.storeRepository = storeRepository;
         this.itemsRepository = itemsRepository;
         this.ownerStore = ownerStore;
-        this.ownerId = ownerStore.getOwner_id();
     }
 
     /**
      * @brief Retrieves menu items belonging to the owner's store
-     * @return The items, or null if no store is linked to the owner
+     * @return The items, or null if the store is missing or loading fails
      * 
      */
     public List<MenuItemsModel> getItems() {
-        StoreManagerModel store = ownerStore;
-        List<MenuItemsModel> ls ;
+        if (ownerStore == null) return null;
         try {
-            ls = itemsRepository.findByRestaurantId(store.getRestaurant_id());
-            return ls;
+            return itemsRepository.findByRestaurantId(ownerStore.getRestaurant_id());
         } catch (Exception e) {
             return null;
         }
@@ -79,12 +70,11 @@ public class ShowItemsService {
 
 
         try {
-            StoreManagerModel store = storeRepository.findByOwnerId(ownerId);
-            if (store == null)
+            if (ownerStore == null)
                 return ErrorCodes.NOT_FOUND;
 
             MenuItemsModel item = new MenuItemsModel();
-            item.setRestaurant_id(store.getRestaurant_id());
+            item.setRestaurant_id(ownerStore.getRestaurant_id());
             item.setItem_name(name);
             item.setItem_price(price);
             item.setItem_quantity(quantity);
@@ -232,9 +222,8 @@ public class ShowItemsService {
      * @return SUCCESS, NOT_FOUND if the store is missing, or UNMATCHED_IDS
      */
     private ErrorCodes checkItemStore(MenuItemsModel item) {
-        StoreManagerModel store = storeRepository.findByOwnerId(ownerId);
-        if (store == null) return ErrorCodes.NOT_FOUND;
-        if (item.getRestaurant_id() != store.getRestaurant_id()) return ErrorCodes.UNMATCHED_IDS;
+        if (ownerStore == null) return ErrorCodes.NOT_FOUND;
+        if (item.getRestaurant_id() != ownerStore.getRestaurant_id()) return ErrorCodes.UNMATCHED_IDS;
         return ErrorCodes.SUCCESS;
     }
 }
