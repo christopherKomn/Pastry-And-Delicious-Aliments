@@ -80,11 +80,7 @@ public class StoreManagerMain {
         );
         
         ShowItemsService showItemsService =
-<<<<<<< Updated upstream
             new ShowItemsService(irepo , ownerStore);
-=======
-            new ShowItemsService(srepo , irepo , StoreGlobals.currentStore);
->>>>>>> Stashed changes
 
         OrderService orderService = new OrderService(orepo);
         
