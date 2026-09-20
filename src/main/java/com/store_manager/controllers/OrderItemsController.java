@@ -1,5 +1,6 @@
 package com.store_manager.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.models.MenuItemsModel;
@@ -33,11 +34,23 @@ public class OrderItemsController {
 
     private void InitController(){
         view.addViewShownListener(event -> {
-
-            view.setOrderItems(
-                service.getAllOrderItemsFromOrder(orderView.getTheOrder()), 
-                service.getAllMenuItemsOfOrder(orderView.getTheOrder())
+            List<OrderItemsModel> orderItems = 
+            service.getAllOrderItemsFromOrder(orderView.getTheOrder());
+            List<MenuItemsModel> menuItems = 
+            service.getAllMenuItemsOfOrder(orderView.getTheOrder());
+            if (orderItems != null){
+                view.setOrderItems(
+                orderItems, 
+                menuItems
                 ); 
+            }
+            else {
+                view.setOrderItems(
+                new ArrayList<OrderItemsModel>(), 
+                new ArrayList<MenuItemsModel>()
+                );
+            }
+            
         });
 
         view.addBackListener(event -> {

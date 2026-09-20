@@ -59,8 +59,7 @@ public class StoreManagerController {
 
         // Show the main page by default
         storeManagerView.setMainContent(storeManagerInfoView);
-
-        Timer timer = new Timer(5_000, event -> {
+        storeManagerView.addEditProfileListener(event -> {
             List<CustomerModel> customers = service.getAllCustomersOrders(StoreGlobals.currentStore);
             if (customers == null) return;
             storeManagerView.setCustomers(customers);
@@ -71,6 +70,9 @@ public class StoreManagerController {
                     customer , 
                     StoreManagerView.CustomerItemStatus.NEW);
             }
+        });
+        Timer timer = new Timer(5_000, event -> {
+            
         });
 
         timer.start();

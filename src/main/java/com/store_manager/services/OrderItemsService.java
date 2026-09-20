@@ -59,9 +59,13 @@ public class OrderItemsService {
                 " order parameter is null"
             );
         }
+        List<OrderItemsModel> orderItems = orderItemsRepo.findByOrderId(order.getId());
+        if (orderItems == null){
 
+            return null;
+        }
         return orderItemsRepo.getMenuItemsByOrderItems(
-            orderItemsRepo.findByOrderId(order.getId())
+                orderItems 
             );
     }
 
@@ -170,18 +174,19 @@ public class OrderItemsService {
         ErrorCodes res;
 
         boolean found = false;
-        for (OrderItemsModel orderItem : inDBOrderItems){
-            if (
-                (newOrderItem.getOrder_id() == orderItem.getOrder_id() ) &&
-                (newOrderItem.getMenu_item_id() == orderItem.getMenu_item_id())
-            ){
-                found = true;
-                orderItem.setQuantity(orderItem.getQuantity() + newOrderItem.getQuantity());
-                newOrderItem = orderItem;
+        if (inDBOrderItems != null)
+            for (OrderItemsModel orderItem : inDBOrderItems){
+                if (
+                    (newOrderItem.getOrder_id() == orderItem.getOrder_id() ) &&
+                    (newOrderItem.getMenu_item_id() == orderItem.getMenu_item_id())
+                ){
+                    found = true;
+                    orderItem.setQuantity(orderItem.getQuantity() + newOrderItem.getQuantity());
+                    newOrderItem = orderItem;
+                }
+                
+                
             }
-            
-            
-        }
 
         if (!found){
             res = orderItemsRepo.save(newOrderItem);
