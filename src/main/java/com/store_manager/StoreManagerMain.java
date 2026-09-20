@@ -32,7 +32,6 @@ import com.store_manager.views.ShowItemsView;
 import com.store_manager.views.StoreManagerInfoView;
 import com.store_manager.views.StoreManagerView;
 
-
 public class StoreManagerMain {
     public static void SMMain(String[] args ,Connection dbConnection , UserModel user) {
         System.out.println("Hello, Store Manager!");
@@ -66,20 +65,26 @@ public class StoreManagerMain {
         // get Store manager from loggin user
         StoreManagerModel ownerStore = srepo.findByOwnerId(user.getUserId());
         if (ownerStore == null) {
+
             JOptionPane.showMessageDialog(null, "No store is linked to your account.");
             return;
         }
+        StoreGlobals.currentStore = ownerStore;
 
 
 
 
         // services
         StoreManagerService storeManagerService = new StoreManagerService(
-            ownerStore, srepo, orepo, crepo
+             srepo, orepo, crepo
         );
         
         ShowItemsService showItemsService =
+<<<<<<< Updated upstream
             new ShowItemsService(irepo , ownerStore);
+=======
+            new ShowItemsService(srepo , irepo , StoreGlobals.currentStore);
+>>>>>>> Stashed changes
 
         OrderService orderService = new OrderService(orepo);
         
@@ -92,7 +97,7 @@ public class StoreManagerMain {
 
         // views
         StoreManagerInfoView storeManagerInfoView =
-            new StoreManagerInfoView(ownerStore);
+            new StoreManagerInfoView(StoreGlobals.currentStore);
 
         ShowItemsView showItemsView =
             new ShowItemsView();

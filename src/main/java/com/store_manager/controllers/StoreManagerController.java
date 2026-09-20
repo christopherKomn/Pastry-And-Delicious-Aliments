@@ -7,6 +7,7 @@ import javax.swing.Timer;
 import com.ErrorCodes;
 import com.models.CustomerModel;
 import com.models.OrderModel;
+import com.store_manager.StoreGlobals;
 import com.store_manager.services.StoreManagerService;
 import com.store_manager.views.OrderView;
 import com.store_manager.views.ShowItemsView;
@@ -45,7 +46,7 @@ public class StoreManagerController {
              
              CustomerModel selectedCustomer = storeManagerView.getSelectedCustomer();
              if (selectedCustomer != null) {
-                OrderModel order = service.getOrderByCustomer(selectedCustomer);
+                OrderModel order = service.getOrderByCustomer(StoreGlobals.currentStore ,selectedCustomer );
                 if (order != null) {
                     orderView.setTheOrder(order);
                     orderView.setVisible(true);
@@ -60,7 +61,8 @@ public class StoreManagerController {
         storeManagerView.setMainContent(storeManagerInfoView);
 
         Timer timer = new Timer(5_000, event -> {
-            List<CustomerModel> customers = service.getAllCustomersOrders();
+            List<CustomerModel> customers = service.getAllCustomersOrders(StoreGlobals.currentStore);
+            if (customers == null) return;
             storeManagerView.setCustomers(customers);
             for (CustomerModel customer : customers) {
                 
@@ -76,7 +78,7 @@ public class StoreManagerController {
 
     private void deleteStore() {
         if (!storeManagerView.confirmStoreDeletion()) return;
-        ErrorCodes result = service.deleteStore();
+        ErrorCodes result = service.deleteStore(StoreGlobals.currentStore);
         if (result == ErrorCodes.SUCCESS) {
             storeManagerView.showMessage("Your store and its products and orders have been deleted. Your account has been kept.");
             storeManagerView.dispose();

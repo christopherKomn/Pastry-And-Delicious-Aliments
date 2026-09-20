@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -183,6 +184,93 @@ public class DBOrderItemsRepository implements IOrderItemsRepository {
              return ErrorCodes.IO_ERROR;
             
         }
+    }
+
+    @Override
+    public ErrorCodes UpdateOrderItems(List<OrderItemsModel> orderItems) {
+        if (orderItems == null) {
+            LOGGER.warning("[UpdateOrderItems] orderItems cannot be null.");
+            throw new IllegalArgumentException("orderItems cannot be null");
+        }
+        for (OrderItemsModel item : orderItems) {
+            if (item == null) {
+                LOGGER.warning("[UpdateOrderItems] The list contains a null item; no updates performed.");
+                return ErrorCodes.FAILED_TO_WRITE;
+            }
+        }
+        if (orderItems.isEmpty()) {
+            LOGGER.info("[UpdateOrderItems] No items to update.");
+            return ErrorCodes.SUCCESS;
+        }
+
+        ErrorCodes result = ErrorCodes.SUCCESS;
+        boolean ownsTransaction = false;
+        boolean started = false;
+        boolean resolved = false;
+        Savepoint savepoint = null;
+        try {
+            ownsTransaction = connection.getAutoCommit();
+            if (ownsTransaction) {
+                connection.setAutoCommit(false);
+            } else {
+                // Keep any work already performed by the caller in its transaction.
+                savepoint = connection.setSavepoint();
+            }
+            started = true;
+
+            for (OrderItemsModel item : orderItems) {
+                result = update(item);
+                if (result != ErrorCodes.SUCCESS) {
+                    LOGGER.warning("[UpdateOrderItems] Update failed for item ID "
+                            + item.getId() + ": " + result + ". Rolling back batch.");
+                    break;
+                }
+            }
+
+            if (result == ErrorCodes.SUCCESS) {
+                if (ownsTransaction) {
+                    connection.commit();
+                } else {
+                    connection.releaseSavepoint(savepoint);
+                }
+                resolved = true;
+            }
+        } catch (SQLException | RuntimeException exception) {
+            LOGGER.log(Level.SEVERE, "[UpdateOrderItems] Batch update failed.", exception);
+            result = ErrorCodes.IO_ERROR;
+        } finally {
+            if (started && !resolved) {
+                try {
+                    if (ownsTransaction) {
+                        connection.rollback();
+                    } else {
+                        connection.rollback(savepoint);
+                    }
+                    resolved = true;
+                    if (!ownsTransaction) {
+                        connection.releaseSavepoint(savepoint);
+                    }
+                } catch (SQLException exception) {
+                    LOGGER.log(Level.SEVERE, "[UpdateOrderItems] Rollback or savepoint cleanup failed.", exception);
+                    result = ErrorCodes.IO_ERROR;
+                }
+            }
+            // Enabling auto-commit after a failed rollback could commit partial updates.
+            if (ownsTransaction && started && resolved) {
+                try {
+                    connection.setAutoCommit(true);
+                } catch (SQLException exception) {
+                    LOGGER.log(Level.SEVERE, "[UpdateOrderItems] Could not restore auto-commit.", exception);
+                    result = ErrorCodes.IO_ERROR;
+                }
+            }
+        }
+
+        if (result == ErrorCodes.SUCCESS) {
+            LOGGER.info("[UpdateOrderItems] Updated " + orderItems.size() + " items"
+                    + (ownsTransaction ? " and committed batch." : "; awaiting caller transaction commit."));
+        }
+        return result;
     }
 
     @Override

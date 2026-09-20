@@ -16,15 +16,17 @@ public class StoreManagerService {
     private static final Logger LOGGER =
             Logger.getLogger(StoreManagerService.class.getName());
 
-    private final StoreManagerModel m_storeManager;
     private final IStoreManagerRepository m_storeManagerRepository;
     private final IOrderRepository m_orderRepository;
     private final ICustomerRepository m_customerRepository;
-    private int ownerId;
 
-    public StoreManagerService(StoreManagerModel storeManager, IStoreManagerRepository storeManagerRepository,
+    /**
+     * @brief Constructor that takes the repos interface necessery to do the services .
+     * @throws IllegalArgumentException If one of the parameters is null.
+     */
+    public StoreManagerService( IStoreManagerRepository storeManagerRepository,
                                IOrderRepository orderRepository, ICustomerRepository customerRepository) {
-        if (storeManager == null || storeManagerRepository == null ||
+        if (storeManagerRepository == null ||
             orderRepository == null || customerRepository == null) {
             LOGGER.severe(
                 "[constructor] Cannot create StoreManagerService because of null parameter ."
@@ -34,11 +36,9 @@ public class StoreManagerService {
                 "A parameter is null"
             );
         }
-        this.m_storeManager = storeManager;
         this.m_storeManagerRepository = storeManagerRepository;
         this.m_orderRepository = orderRepository;
         this.m_customerRepository = customerRepository;
-        this.ownerId = storeManager.getOwner_id();
     }
 
     
@@ -46,7 +46,6 @@ public class StoreManagerService {
 
     public StoreManagerService( StoreManagerService other) {
         this(
-            other.m_storeManager,
             other.m_storeManagerRepository,
             other.m_orderRepository,
             other.m_customerRepository
@@ -54,10 +53,6 @@ public class StoreManagerService {
     }
 
 
-    // getters
-    public StoreManagerModel getStoreManager() {
-        return m_storeManager;
-    }
 
     public IStoreManagerRepository getStoreManagerRepository() {
         return m_storeManagerRepository;
@@ -74,10 +69,17 @@ public class StoreManagerService {
     /**
      * @brief Returns a list of customers with orders on the Store 
      * manager given in contructor . Null if no order found .
+     * @param store The Store to retreive the orders .
+     * @throws IllegalArgumentException If store is null.
      */
-    public List<CustomerModel> getAllCustomersOrders(){
+    public List<CustomerModel> getAllCustomersOrders(StoreManagerModel store){
+        if (store == null){
+            throw new IllegalArgumentException(
+                "store parameter is null"
+            );
+        }
         List<OrderModel> orders = m_orderRepository.findByRestaurantId(
-            Long.valueOf(m_storeManager.getRestaurant_id())
+            Long.valueOf(store.getRestaurant_id())
         );
         if (orders == null) return null;
 
@@ -90,53 +92,81 @@ public class StoreManagerService {
             }
         }
         if (customers.isEmpty()){
-            
+            LOGGER.warning("No Orders from customers found !");
             return null;
         }
 
-        
+        LOGGER.info(() -> "Retrieved "
+                    + customers.size() + " customers with orders .");
         return customers; 
     }
 
     /**
-     * @brief Returns if exists an order model of this customer for 
-     * the store manager given in the constructor .
+     * @brief Based on store and customer , retreives if exist's the order
+     * this customer have done to this store  .
      * @param customer  The customer model .
-     * @returns Null if there is no order of this customer from the given 
-     * StoreManagerModel , otherwise returns the Order Model that represents 
-     * the actuall order .
+     * @param store The Store model 
+     * @returns OrderModel if there is a order from this customer on this store or 
+     * null if there is not or any io error .
+     * @throws IllegalArgumentException If store or customer parameters are null .
+     * @note Returns the first matching order meaning if the custoemer has more orders
+     * for the same store they will not show up .
      */
-    public OrderModel getOrderByCustomer(CustomerModel customer) {
-        if (customer == null) {
+    public OrderModel getOrderByCustomer(StoreManagerModel store , CustomerModel customer) {
+        if (customer == null || store == null) {
             throw new IllegalArgumentException(
-                "customer parameter is null"
+                "customer and / or store parameter is null"
             );
         }
 
 
         List<OrderModel> orders = m_orderRepository.findByRestaurantId(
-            Long.valueOf(m_storeManager.getRestaurant_id())
+            Long.valueOf(store.getRestaurant_id())
         );
 
         for (OrderModel order : orders) {
             if (order.getCustomer_id() == customer.getId()) {
+                LOGGER.info(()-> "Orders from customer \"" + customer + "\" found for store \"" + store + "\" .");
                 return order;
             }
         }
 
+        LOGGER.warning(()-> "No Orders from customer \"" + customer + "\" found for store \"" + store + "\" ");
         return null; 
     }
 
     /**
      * @brief deletes the hole store and that means the store manager from the 
-     * data base .
+     * data base (restaurant).
+     * @param store The store manager model that represents the actual store to be deleted .
      * @returns ErrorCodes 
      *  1. SUCCESS if deleted succefully 
      *  2. NOT_FOUND If there is no valid store
      *  3. IO_ERROR for anything else 
+     * @throws IllegalArgumentException If store is null .
      */
-    public ErrorCodes deleteStore() {
-        return m_storeManagerRepository.deleteByOwnerId(ownerId);
+    public ErrorCodes deleteStore(StoreManagerModel store ) {
+        if (store == null){
+            throw new IllegalArgumentException(
+                " store parameter is null"
+            );
+        }
+        ErrorCodes res = 
+         m_storeManagerRepository.deleteByOwnerId(store.getRestaurant_id());
+
+        
+        switch (res) {
+            case SUCCESS:
+                LOGGER.info(()-> "Store \"" + store + "\" deleted .");
+                break;
+            case NOT_FOUND:
+                LOGGER.warning(()-> "Store \"" + store + "\"  Not found .");
+                break;
+            default:
+                LOGGER.warning(()-> "Store \"" + store + "\"  failed to delete .");
+                break;
+        }
+        return res;
     }
 
 

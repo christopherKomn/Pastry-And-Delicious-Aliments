@@ -79,4 +79,17 @@ public interface IOrderItemsRepository {
      */
     List<MenuItemsModel> getMenuItemsByOrderItems(List<OrderItemsModel> orderItems);
 
+    /**
+     * @brief Updates all the order items only and only if there is no a single 
+     * error , otherwise returns the failed code for it .
+     * @param orderItems The order items list we want to update 
+     * @return A code represents if io operation happen or not and why not
+     * 1. SUCCESS If succesfully updated
+     * 2. FAILED_TO_WRITE If failed to write on io
+     * 3. NOT_FOUND If a single Item is not found in io
+     * 4. IO_ERROR If io has a more generic error
+     * @throws IllegalArgumentException If orderItems is null
+     */
+    ErrorCodes UpdateOrderItems(List<OrderItemsModel> orderItems);
+
 } 
