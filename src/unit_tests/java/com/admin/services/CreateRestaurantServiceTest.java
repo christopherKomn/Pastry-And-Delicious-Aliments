@@ -9,14 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyInt;
 
 import org.mockito.Mock;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.admin.services.*;
+import com.admin.services.CreateRestaurantService;
 import com.ErrorCodes;
 import com.models.StoreManagerModel;
 import com.models.UserModel;
@@ -43,7 +42,7 @@ class CreateRestaurantServiceTest {
         service = new CreateRestaurantService(storeManagerRepository, userRepository);
         users = new ArrayList<>();
 
-        user = new UserModel();
+        user = new UserModel(); 
         user.setUsername("new_owner");
         user.setUserEmail("owner@example.com");
 

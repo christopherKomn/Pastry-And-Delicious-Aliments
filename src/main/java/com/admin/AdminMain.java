@@ -9,14 +9,17 @@ import com.admin.controllers.AdminInfoController;
 import com.admin.controllers.CreateRestaurantController;
 import com.admin.controllers.ShowCustomersController;
 import com.admin.controllers.ShowRestaurantsController;
+import com.admin.controllers.AdminEditController;
 import com.admin.services.CreateRestaurantService;
 import com.admin.services.ShowCustomersService;
+import com.admin.services.AdminEditService;
 import com.admin.services.ShowRestaurantService;
 import com.admin.views.AdminInfoView;
 import com.admin.views.AdminView;
 import com.admin.views.CreateRestaurantView;
 import com.admin.views.ShowCustomersView;
 import com.admin.views.ShowRestaurantsView;
+import com.admin.views.EditUserView;
 import com.models.UserModel;
 import com.repository.DBCustomerRepository;
 import com.repository.DBStoreManagerRepository;
@@ -63,6 +66,9 @@ public class AdminMain {
             ShowCustomersService showCustomersService = 
                     new ShowCustomersService(customerRepository , userRepository);
 
+            AdminEditService adminEditService = 
+                        new AdminEditService(userRepository);
+
             // Views
             AdminView adminView = new AdminView();
 
@@ -76,6 +82,8 @@ public class AdminMain {
             ShowCustomersView showCustomersView = 
                         new ShowCustomersView();
             
+            EditUserView editUserView = 
+                        new EditUserView();
 
             // Controller
             CreateRestaurantController createRestaurantController =
@@ -90,6 +98,9 @@ public class AdminMain {
             AdminInfoController adminInfoController = 
                     new AdminInfoController( adminInfoView , user );
 
+            AdminEditController adminEditController = 
+                    new AdminEditController( user , editUserView , adminEditService);
+
             AdminController adminController = 
             new AdminController(
                 user,
@@ -97,7 +108,8 @@ public class AdminMain {
                 createRestaurantView, 
                 showRestaurantsView, 
                 adminView, 
-                showCustomersView);
+                showCustomersView,
+                editUserView);
             
 
             adminView.setVisible(true);
