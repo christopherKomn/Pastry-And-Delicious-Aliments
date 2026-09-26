@@ -58,11 +58,28 @@ public class CreateRestaurantService {
 
 
 
-
+    /**
+     * @brief Creates a new restaurant to a user model that is given .
+     * If the user model is not existing in the io then is created and 
+     * assign the restaurant otherwise if exist's then he should be a 
+     * restaurant_owner type of user otherwise the restaurant can't created.
+     * @param user The user model data of the new or existing user
+     * @param restaurant The new Restaurant data and info .
+     * @return ErrorCodes
+     * 1. SUCCESS If the operation happen succesfully (the assigment)
+     * 2. ALREADY_EXISTS If the store already exist's 
+     * 3. BAD_TYPE If the user exist's but the type of his is not a restaurant_owner
+     * 4. IO_ERROR If some io operation failed .
+     * 5. FAILED_TO_WRITE If some update io operation failed .
+     */
     public ErrorCodes createRestaurant(
         UserModel user,
         StoreManagerModel restaurant) {
-
+        if (user == null || restaurant == null){
+            throw new IllegalArgumentException(
+                "user and / or restaurant parameter are null"
+            );
+        }
         
         user.setUser_type("restaurant_owner");
 
