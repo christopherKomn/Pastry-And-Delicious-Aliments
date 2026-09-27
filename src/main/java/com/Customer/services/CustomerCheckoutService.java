@@ -22,7 +22,7 @@ public class CustomerCheckoutService {
         return cartItem.getProduct().getItem_price()
                 .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
     }
-    /*
+    /* 
     public void SetOrderToDB(List<CartItem> cartItems, Connection dbConnection, CustomerModel customer){
 
         Calendar calendarInstance = Calendar.getInstance();
@@ -39,7 +39,8 @@ public class CustomerCheckoutService {
             Statement stmt = dbConnection.createStatement();
             
             // Inserting data in database
-            String q1 = "insert into orders (customer_id,restaurant_id,status,subtotal,discount_amount,total_amount,payment_method,special_instructions,actual_delivery_time,created_at) values('" +customer.getId()+ "', '" +1+ "','" +"pending"+ "', '" +subtotal+ "', '" +discount+ "', '" +payment_method+ "', '" +special_instructions+ "', '" +actual_delivery_time+ "', '" +timestamp+ "')";
+            String q1 = "insert into orders (customer_id,restaurant_id,status,subtotal,discount_amount,total_amount,payment_method,special_instructions,actual_delivery_time,created_at) values('" 
+            +customer.getId()+ "', '" +1+ "','" +"pending"+ "', '" +subtotal+ "', '" +discount+ "', '" +payment_method+ "', '" +special_instructions+ "', '" +actual_delivery_time+ "', '" +timestamp+ "')";
             int x = stmt.executeUpdate(q1);
             if (x > 0)            
                 System.out.println("Successfully Inserted");            
