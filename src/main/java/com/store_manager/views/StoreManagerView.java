@@ -50,6 +50,7 @@ public class StoreManagerView extends JFrame {
     private final DefaultListModel<CustomerModel> customerListModel = new DefaultListModel<>();
     private final JList<CustomerModel> customerList = new JList<>(customerListModel);
     private final JPanel mainContentPanel = new JPanel(new BorderLayout());
+    private final JButton refreshButton = new JButton("\u21BB");
     private final JButton selfDestructButton = new JButton("Self Destruct");
     private final JMenu updateStoreMenu = new JMenu("Update Store");
     private final JMenuItem updateItemsMenuItem = new JMenuItem("Items");
@@ -152,7 +153,20 @@ public class StoreManagerView extends JFrame {
         subtitle.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
         subtitle.setForeground(TEXT_SECONDARY);
 
-        heading.add(title, BorderLayout.NORTH);
+        refreshButton.setFont(new Font(Font.DIALOG, Font.PLAIN, 24));
+        refreshButton.setForeground(TEXT_PRIMARY);
+        refreshButton.setPreferredSize(new Dimension(40, 36));
+        refreshButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        refreshButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        refreshButton.setToolTipText("Refresh customer orders");
+        refreshButton.getAccessibleContext().setAccessibleName("Refresh customer orders");
+
+        JPanel titleRow = new JPanel(new BorderLayout(10, 0));
+        titleRow.setOpaque(false);
+        titleRow.add(refreshButton, BorderLayout.WEST);
+        titleRow.add(title, BorderLayout.CENTER);
+
+        heading.add(titleRow, BorderLayout.NORTH);
         heading.add(subtitle, BorderLayout.SOUTH);
         panel.add(heading, BorderLayout.NORTH);
 
@@ -357,6 +371,10 @@ public class StoreManagerView extends JFrame {
 
     public void addSelfDestructListener(ActionListener listener) {
         selfDestructButton.addActionListener(listener);
+    }
+
+    public void addRefreshListener(ActionListener listener) {
+        refreshButton.addActionListener(listener);
     }
 
     public boolean confirmStoreDeletion() {

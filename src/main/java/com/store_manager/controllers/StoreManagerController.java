@@ -59,7 +59,7 @@ public class StoreManagerController {
 
         // Show the main page by default
         storeManagerView.setMainContent(storeManagerInfoView);
-        storeManagerView.addEditProfileListener(event -> {
+        storeManagerView.addRefreshListener(event -> {
             List<CustomerModel> customers = service.getAllCustomersOrders(StoreGlobals.currentStore);
             if (customers == null) return;
             storeManagerView.setCustomers(customers);
