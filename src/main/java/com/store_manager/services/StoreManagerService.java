@@ -152,7 +152,7 @@ public class StoreManagerService {
             );
         }
         ErrorCodes res = 
-         m_storeManagerRepository.deleteByOwnerId(store.getRestaurant_id());
+         m_storeManagerRepository.deleteByOwnerId(store.getOwner_id());
 
         
         switch (res) {
