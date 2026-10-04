@@ -2,7 +2,6 @@ package com.store_manager.views;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -28,11 +27,6 @@ import com.models.OrderItemsModel;
 /** Displays menu information alongside the corresponding order items. */
 public class OrderItemsView extends JPanel {
 
-    @FunctionalInterface
-    public interface OrderItemQuantityChangeListener {
-        void quantityChanged(OrderItemsModel orderItem);
-    }
-
     private static final Color BACKGROUND = new Color(245, 247, 250);
     private static final String[] COLUMNS = {
         "Menu item",
@@ -45,14 +39,11 @@ public class OrderItemsView extends JPanel {
 
     private final List<OrderItemsModel> orderItems = new ArrayList<>();
     private final List<MenuItemsModel> menuItems = new ArrayList<>();
-    private final List<OrderItemQuantityChangeListener> quantityChangeListeners = new ArrayList<>();
     private final List<ActionListener> viewShownListeners = new ArrayList<>();
 
     private final OrderItemsTableModel tableModel = new OrderItemsTableModel();
     private final JTable itemsTable = new JTable(tableModel);
     private final JButton backButton = new JButton("\u2190");
-    private final JButton addButton = new JButton("Add");
-    private final JButton removeButton = new JButton("Remove");
 
     public OrderItemsView() {
         this(Collections.emptyList(), Collections.emptyList());
@@ -84,17 +75,10 @@ public class OrderItemsView extends JPanel {
         itemsTable.setRowHeight(27);
         itemsTable.setFillsViewportHeight(true);
         itemsTable.getTableHeader().setReorderingAllowed(false);
-        itemsTable.getSelectionModel().addListSelectionListener(event -> updateRemoveButton());
 
         JScrollPane scrollPane = new JScrollPane(itemsTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(215, 220, 228)));
         add(scrollPane, BorderLayout.CENTER);
-
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        actions.setOpaque(false);
-        actions.add(removeButton);
-        actions.add(addButton);
-        add(actions, BorderLayout.SOUTH);
 
         addHierarchyListener(event -> {
             if ((event.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0
@@ -137,7 +121,6 @@ public class OrderItemsView extends JPanel {
         this.menuItems.addAll(menuItems);
         tableModel.fireTableDataChanged();
         itemsTable.clearSelection();
-        updateRemoveButton();
     }
 
     /** Returns the displayed order items, including edited quantities. */
@@ -162,20 +145,6 @@ public class OrderItemsView extends JPanel {
         return row < 0 ? null : menuItems.get(itemsTable.convertRowIndexToModel(row));
     }
 
-    public void addOrderItemQuantityChangeListener(OrderItemQuantityChangeListener listener) {
-        if (listener != null) {
-            quantityChangeListeners.add(listener);
-        }
-    }
-
-    public void addAddListener(ActionListener listener) {
-        addButton.addActionListener(listener);
-    }
-
-    public void addRemoveListener(ActionListener listener) {
-        removeButton.addActionListener(listener);
-    }
-
     /** Adds code to run when the back arrow is clicked. */
     public void addBackListener(ActionListener listener) {
         backButton.addActionListener(listener);
@@ -185,17 +154,6 @@ public class OrderItemsView extends JPanel {
     public void addViewShownListener(ActionListener listener) {
         if (listener != null) {
             viewShownListeners.add(listener);
-        }
-    }
-
-    private void updateRemoveButton() {
-        removeButton.setEnabled(itemsTable.getSelectedRow() >= 0);
-    }
-
-    private void notifyQuantityChanged(OrderItemsModel orderItem) {
-        for (OrderItemQuantityChangeListener listener :
-                new ArrayList<>(quantityChangeListeners)) {
-            listener.quantityChanged(orderItem);
         }
     }
 
@@ -236,7 +194,7 @@ public class OrderItemsView extends JPanel {
 
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column == 4;
+            return false;
         }
 
         @Override
@@ -255,37 +213,6 @@ public class OrderItemsView extends JPanel {
             };
         }
 
-        @Override
-        public void setValueAt(Object value, int row, int column) {
-            if (column != 4) {
-                return;
-            }
-
-            Integer quantity = parseQuantity(value);
-            if (quantity == null || quantity < 1) {
-                fireTableCellUpdated(row, column);
-                return;
-            }
-
-            OrderItemsModel orderItem = orderItems.get(row);
-            if (quantity == orderItem.getQuantity()) {
-                return;
-            }
-            orderItem.setQuantity(quantity);
-            fireTableCellUpdated(row, column);
-            notifyQuantityChanged(orderItem);
-        }
-
-        private Integer parseQuantity(Object value) {
-            if (value instanceof Number number) {
-                return number.intValue();
-            }
-            try {
-                return Integer.valueOf(String.valueOf(value).trim());
-            } catch (NumberFormatException exception) {
-                return null;
-            }
-        }
     }
 
     private static String formatMoney(BigDecimal price) {

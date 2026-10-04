@@ -14,6 +14,8 @@ public interface ICustomerRepository  {
      */
     CustomerModel findById(int id);
 
+    CustomerModel findByUserId(int userId);
+
     /**
      * @brief Returns all customers in the io 
      * @return a list of all existing customers in io

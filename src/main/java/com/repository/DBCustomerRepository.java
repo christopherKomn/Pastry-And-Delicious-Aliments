@@ -59,6 +59,24 @@ public class DBCustomerRepository implements ICustomerRepository {
     }
 
     @Override
+    public CustomerModel findByUserId(int userId) {
+        String sql = "SELECT " + SELECT_COLUMNS + " FROM customer WHERE user_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? mapCustomer(resultSet) : null;
+            }
+        } catch (SQLException exception) {
+            LOGGER.log(
+                    Level.SEVERE,
+                    "[findByUserId] Database error while searching customer for user ID "
+                            + userId + ".",
+                    exception);
+            return null;
+        }
+    }
+
+    @Override
     public List<CustomerModel> findAll() {
         String sql = "SELECT " + SELECT_COLUMNS + " FROM customer ORDER BY id";
         List<CustomerModel> customers = new ArrayList<>();

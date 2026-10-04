@@ -21,9 +21,17 @@ public class CustomerMenuController {
     private final CustomerCheckoutController checkoutController;
 
     public CustomerMenuController(CustomerMenuService service, CustomerRestaurantService restaurantService) {
+        this(service, restaurantService, new CustomerCheckoutService(), 0);
+    }
+
+    public CustomerMenuController(
+            CustomerMenuService service,
+            CustomerRestaurantService restaurantService,
+            CustomerCheckoutService checkoutService,
+            int userId) {
         this.service = service;
         this.restaurantService = restaurantService;
-        this.checkoutController = new CustomerCheckoutController(new CustomerCheckoutService());
+        this.checkoutController = new CustomerCheckoutController(checkoutService, userId);
     }
 
     public void handleMenuSelection(ActionEvent event, CustomerView view) {
@@ -38,7 +46,7 @@ public class CustomerMenuController {
             menuView.removeFromCartListener(
                     itemEvent -> removeProductFromCart(menuView, cart, itemEvent));
                 menuView.addContinueListener(
-                    continueEvent -> checkoutController.openCheckout(menuView, cart));
+                    continueEvent -> checkoutController.openCheckout(menuView, cart, restaurantId));
             menuView.setProducts(products);
             menuView.setVisible(true);
         }

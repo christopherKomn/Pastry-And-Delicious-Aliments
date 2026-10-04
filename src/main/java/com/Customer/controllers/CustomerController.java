@@ -2,6 +2,7 @@ package com.customer.controllers;
 
 import java.awt.event.ActionEvent;
 
+import com.customer.services.CustomerCheckoutService;
 import com.customer.services.CustomerService;
 import com.customer.views.CustomerView;
 
@@ -12,10 +13,22 @@ public class CustomerController {
     private final CustomerMenuController menuController;
 
     public CustomerController(CustomerService service, CustomerView view) {
+        this(service, view, new CustomerCheckoutService(), 0);
+    }
+
+    public CustomerController(
+            CustomerService service,
+            CustomerView view,
+            CustomerCheckoutService checkoutService,
+            int userId) {
         this.service = service;
         this.view = view;
         this.restaurantController = new CustomerRestaurantController(service.getRestaurantService(), view);
-        this.menuController = new CustomerMenuController(service.getMenuService(), service.getRestaurantService());
+        this.menuController = new CustomerMenuController(
+                service.getMenuService(),
+                service.getRestaurantService(),
+                checkoutService,
+                userId);
 
         view.addRestaurantListener(this::handleRestaurantSelection);
         view.addMenuListener(this::handleMenuSelection);

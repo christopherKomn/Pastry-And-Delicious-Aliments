@@ -1,5 +1,6 @@
 package com.store_manager.controllers;
 
+import com.ErrorCodes;
 import com.store_manager.services.OrderService;
 import com.store_manager.views.OrderItemsView;
 import com.store_manager.views.OrderView;
@@ -9,6 +10,7 @@ public class OrderController{
     private final OrderView    view;
     private final OrderItemsView orderItemsview;
     private final StoreManagerView storeManagerView;
+    private final Runnable onOrderRejected;
 
     public OrderController(
         OrderService orderService , 
@@ -16,11 +18,22 @@ public class OrderController{
         OrderItemsView orderItemsView,
         StoreManagerView storeManagerView
         ){
+        this(orderService, orderView, orderItemsView, storeManagerView, null);
+    }
+
+    public OrderController(
+        OrderService orderService,
+        OrderView orderView,
+        OrderItemsView orderItemsView,
+        StoreManagerView storeManagerView,
+        Runnable onOrderRejected
+        ){
 
         this.service = orderService;
         this.view  = orderView;
         this.orderItemsview = orderItemsView;
         this.storeManagerView = storeManagerView;
+        this.onOrderRejected = onOrderRejected;
         InitController();
         
     }
@@ -31,6 +44,7 @@ public class OrderController{
         this.service = controller.service;
         this.orderItemsview = controller.orderItemsview;
         this.storeManagerView = controller.storeManagerView;
+        this.onOrderRejected = controller.onOrderRejected;
         InitController();
     }
 
@@ -46,9 +60,12 @@ public class OrderController{
         });
 
         view.addRejectListener(event -> {
-            
-            service.RejectOrder( view.getTheOrder() );
-            
+            if (service.RejectOrder(view.getTheOrder()) == ErrorCodes.SUCCESS) {
+                view.setTheOrder(null);
+                if (onOrderRejected != null) {
+                    onOrderRejected.run();
+                }
+            }
         });
 
         view.addOrderItemsListener(event -> {

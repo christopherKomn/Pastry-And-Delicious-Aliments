@@ -12,6 +12,10 @@ public class CustomerPaymentMethodController {
         this.service = service;
     }
 
+    public String getSelectedPaymentMethod() {
+        return selectedPaymentMethod;
+    }
+
     public void openPaymentMethod(CustomerCheckoutView checkoutView, Runnable onSaved) {
         CustomerPaymentMethodView view = new CustomerPaymentMethodView(selectedPaymentMethod);
         view.addPaymentMethodListener(

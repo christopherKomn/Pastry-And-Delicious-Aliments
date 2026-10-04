@@ -105,7 +105,7 @@ public class OrderView extends JPanel {
         subtotalValue.setText(hasOrder ? formatMoney(order.getSubtotal()) : "-");
         discountValue.setText(hasOrder ? formatMoney(order.getDiscount_amount()) : "-");
         totalValue.setText(hasOrder ? formatMoney(order.getTotal_amount()) : "-");
-        paymentMethodValue.setText(hasOrder ? displayValue(order.getPayment_method()) : "-");
+        paymentMethodValue.setText(hasOrder ? displayPaymentMethod(order.getPayment_method()) : "-");
         specialInstructionsValue.setText(
                 hasOrder ? displayValue(order.getSpecial_instructions()) : "No order selected");
         updateStatus();
@@ -150,7 +150,9 @@ public class OrderView extends JPanel {
         }
 
         String status = order.getStatus();
-        statusValue.setText(status.replace('_', ' '));
+        String displayStatus = status.replace('_', ' ');
+        statusValue.setText(Character.toUpperCase(displayStatus.charAt(0))
+            + displayStatus.substring(1));
         statusValue.setForeground(switch (status.toLowerCase(Locale.ROOT)) {
             case "pending" -> PENDING_COLOR;
             case "confirmed" -> CONFIRMED_COLOR;
@@ -193,5 +195,16 @@ public class OrderView extends JPanel {
 
     private static String displayValue(String value) {
         return value == null || value.isBlank() ? "Not available" : value;
+    }
+
+    private static String displayPaymentMethod(String paymentMethod) {
+        if (paymentMethod == null || paymentMethod.isBlank()) {
+            return "Not available";
+        }
+        return switch (paymentMethod.toLowerCase(Locale.ROOT)) {
+            case "cash" -> "Cash";
+            case "credit_card", "debit_card" -> "Card";
+            default -> paymentMethod;
+        };
     }
 }
