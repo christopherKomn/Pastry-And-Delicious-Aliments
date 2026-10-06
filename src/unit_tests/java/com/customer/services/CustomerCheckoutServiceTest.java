@@ -39,7 +39,8 @@ public class CustomerCheckoutServiceTest {
 
     //@Mock(mockMaker = org.mockito.MockMakers.PROXY)
 
-    private Connection connection;
+        @Mock
+        private Connection connection;
 
     @Mock
     private ICustomerRepository customerRepo;
